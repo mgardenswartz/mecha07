@@ -5,3 +5,4 @@ class garbageCollectTask:
         while True:
             gc.collect()
             yield
+            
