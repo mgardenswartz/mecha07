@@ -28,6 +28,7 @@ class pilotTask:
         self.motor_RPM_wanted_LEFT = motor_RPM_wanted_LEFT
         self.motor_RPM_wanted_RIGHT = motor_RPM_wanted_RIGHT
 
+    
     def run(self):
         while True:
             if self.state == 0:
