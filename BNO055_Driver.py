@@ -7,7 +7,7 @@ class BNO055_Driver:
         # Initialization
         self.baudate = baudrate
         self.bus = bus
-        self.i2c.init(I2C.CONTROLLER, baudrate=baudrate, gencall=False, dma=False)
+        self.i2c(self.bus, I2C.CONTROLLER, baudrate=baudrate, gencall=False, dma=False)
         
         # Constants
         self.timeout = 3000 #ms
