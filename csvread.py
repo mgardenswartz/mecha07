@@ -25,7 +25,7 @@ def csvread(filename):
                     if char == "#":
                         break
                     # Allowable characters
-                    elif (char.isdigit() == True or char=="-" or char=="."):
+                    else: #(char.isdigit() == True or char=="-" or char=="."):
                         temp += char
                 except AttributeError: 
                     filedata[row_index] == [""]
@@ -51,6 +51,10 @@ def csvread(filename):
     
     return filedata
 
-cal_coeffs = csvread('IMU_cal_coeffs.txt')
+filedata = csvread('IMU_cal_coeffs.txt')
 
-print(cal_coeffs[0])
+first_row = filedata[0]
+cal_coeffs = [(int(hex_val,16) & 0x7F) - (int(hex_val,16) & 0x80) for hex_val in first_row]
+
+print(cal_coeffs)
+
