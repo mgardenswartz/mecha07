@@ -1,4 +1,5 @@
 from pyb import I2C
+from csvread import *
 import os
 class BNO055_Driver:
     def __init__(self,
@@ -26,7 +27,8 @@ class BNO055_Driver:
         self.file_name = "IMU_cal_coeffs.txt"
         self.files = os.listdir()
         if self.file_name in self.files:
-            pass
+            self.x_values,self.y_values,self.titles = csvread(self.file_name)
+            
         else:
             raise FileNotFoundError(f"The file {self.file_name} was not found.")
 

@@ -164,10 +164,11 @@ if __name__ == "__main__":
                       priority = 2,
                       period = 30)
     # Task Scheduler
-    task_list.append(motorControl_Task_LEFT)
-    task_list.append(motorControl_Task_RIGHT)
-    task_list.append(garbageCollect_Task)
-    task_list.append(pilot_Task)
+    # task_list.append(motorControl_Task_LEFT)
+    # task_list.append(motorControl_Task_RIGHT)
+    # task_list.append(garbageCollect_Task)
+    # task_list.append(pilot_Task)
+    
 
     # Run the scheduler
     while True:
