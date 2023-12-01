@@ -8,7 +8,8 @@ class BNO055_Driver:
         self.baudate = baudrate
         self.bus = bus
         self.i2c(self.bus, I2C.CONTROLLER, baudrate=baudrate, gencall=False, dma=False)
-        
+        self.set_mode("IMU")
+
         # Constants
         self.timeout = 3000 #ms
         self.mode_addr = 0x3D
@@ -22,7 +23,7 @@ class BNO055_Driver:
         # Set units m/s^2, Dps, deg, degF, Windows 
         self.i2c.mem_write(0b0001_0000, addr = self.unit_sel_addr) 
 
-    def change_mode(self,mode: str):
+    def set_mode(self,mode: str):
         self.mode = mode
 
         if self.i2c.is_ready(self.mode_addr):
@@ -96,6 +97,7 @@ class BNO055_Driver:
         self.Euler_angles = [self.EUL_Heading, self.EUL_Roll, self.EUL_Pitch]
         self.Euler_angles = [int(hex_val & 0x7FFF) - int(hex_val & 0x8000) for hex_val in self.Euler_angles]
         self.Euler_angles = [val/16 for val in self.Euler_angles]
+        
         return self.Euler_angles
     
     def read_angular_velocities(self):
@@ -110,6 +112,6 @@ class BNO055_Driver:
         self.gyr_data[1] = (self.raw_angular_velocities[2] << 8) | self.raw_angular_velocities[3]
         self.gyr_data[2] = (self.raw_angular_velocities[4] << 8) | self.raw_angular_velocities[5]
 
-        self.gyr_data = [value/16 for value in self.gyr_data]
+        self.gyr_data = [value/16 for value in self.gyr_data] #Dps
 
         return self.gyr_data
