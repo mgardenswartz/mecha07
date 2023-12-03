@@ -14,6 +14,10 @@ cal_coeffs = first_row
 # cal_coeffs = [(int(hex_val,16) & 0x7F) - (int(hex_val,16) & 0x80) for hex_val in first_row]
 myIMU.write_coefficients(cal_coeffs)
 
+# Pins
+Pin_I2C1_SCL = pyb.Pin(pyb.Pin.cpu.B8,mode=pyb.Pin.ALT,alt=4)
+Pin_I2C1_SDA = pyb.Pin(pyb.Pin.cpu.B9,mode=pyb.Pin.ALT,alt=4)
+
 first_loop = True
 while True:
    sleep_ms(30)
