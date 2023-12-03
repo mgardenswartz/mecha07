@@ -39,6 +39,6 @@
 # result = separate_16bit_hex(hex_number_example)
 # print(result)
 
-hex_num = 0x6A
+# hex_num = 0x6A
 
-print(hex(hex_num - 2 * 10))
+# print(hex(hex_num - 2 * 10))

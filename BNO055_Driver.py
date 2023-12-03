@@ -145,7 +145,7 @@ class BNO055_Driver:
             self.i2c.mem_read( self.raw_angular_velocities[index],
                               addr = 0x14 + index)
             
-        self.gyr_data = [-1]*3
+        self.gyr_data = [-10000]*3
         self.gyr_data[0] = (self.raw_angular_velocities[0] << 8) | self.raw_angular_velocities[1]
         self.gyr_data[1] = (self.raw_angular_velocities[2] << 8) | self.raw_angular_velocities[3]
         self.gyr_data[2] = (self.raw_angular_velocities[4] << 8) | self.raw_angular_velocities[5]

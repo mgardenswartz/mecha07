@@ -51,10 +51,10 @@ def csvread(filename):
     
     return filedata
 
-filedata = csvread('IMU_cal_coeffs.txt')
+# filedata = csvread('IMU_cal_coeffs.txt')
 
-first_row = filedata[0]
-cal_coeffs = [(int(hex_val,16) & 0x7F) - (int(hex_val,16) & 0x80) for hex_val in first_row]
+# first_row = filedata[0]
+# cal_coeffs = [(int(hex_val,16) & 0x7F) - (int(hex_val,16) & 0x80) for hex_val in first_row]
 
-print(cal_coeffs)
+# print(cal_coeffs)
 
