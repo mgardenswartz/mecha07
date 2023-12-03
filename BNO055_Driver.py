@@ -143,10 +143,9 @@ class BNO055_Driver:
         self.raw_angular_velocities = bytearray(6)
         for index in range(6):
             self.i2c.mem_read( self.raw_angular_velocities[index],
-                              addr = 0x14 + index,
-                              )
+                              addr = 0x14 + index)
             
-        self.gyr_data = [0]*3
+        self.gyr_data = [-1]*3
         self.gyr_data[0] = (self.raw_angular_velocities[0] << 8) | self.raw_angular_velocities[1]
         self.gyr_data[1] = (self.raw_angular_velocities[2] << 8) | self.raw_angular_velocities[3]
         self.gyr_data[2] = (self.raw_angular_velocities[4] << 8) | self.raw_angular_velocities[5]
@@ -172,7 +171,6 @@ class BNO055_Driver:
                            addr = self.axis_map_sign_addr,
                            timeout = self.timeout)
         
-
     def separate_16bit_hex(hex_number):
         # Ensure the input is a valid hexadecimal string
         if not isinstance(hex_number, str) or not hex_number.startswith("0x"):
