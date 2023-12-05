@@ -9,7 +9,8 @@ class pilotTask:
                  motor_RPM_wanted_RIGHT,
                  encoderCPR: int,
                  debug: bool,
-                 revolutionLimit: int):
+                 revolutionLimit: int,
+                 IMU):
         
         # Attributes
         self.cruiseSpeed = cruiseSpeed
@@ -20,7 +21,8 @@ class pilotTask:
         self.encoderCPR = encoderCPR
         self.debug = debug
         self.revolutionLimit = revolutionLimit
-        
+        self.IMU = IMU
+
         # Variables
         self.state = 0
 
@@ -28,74 +30,69 @@ class pilotTask:
         self.motor_RPM_wanted_LEFT = motor_RPM_wanted_LEFT
         self.motor_RPM_wanted_RIGHT = motor_RPM_wanted_RIGHT
 
-    def face_north()
-       self.north = 0 #deg
-       
-        
-    def run(self):
+    def face_north(self):
         while True:
-            if self.state == 0:
-               # Turn off motors
-               self.motor_RPM_wanted_LEFT.put(0)
-               self.motor_RPM_wanted_RIGHT.put(0)
+            if self.state == 0: # Initialization
+                # Turn off motors
+                self.motor_RPM_wanted_LEFT.put(0)
+                self.motor_RPM_wanted_RIGHT.put(0)
 
-               # Zero encoders
-               self.encoder_LEFT.zero()
-               self.encoder_RIGHT.zero()
+                # Zero encoders
+                self.encoder_LEFT.zero()
+                self.encoder_RIGHT.zero()
 
-               # State Transition 
-               self.state = 1
+                # Get current heading
+                self.Heading,self.Roll,self.Pitch = self.IMU.read_Euler_angles()
 
-            elif self.state == 1:
-               # Search for line by cruising
-               self.motor_RPM_wanted_LEFT.put(self.cruiseSpeed)
-               self.motor_RPM_wanted_RIGHT.put(self.cruiseSpeed)
-               
-            elif self.state == 2:
-               # Turn left
-               self.motor_RPM_wanted_LEFT.put(self.cruiseSpeed+self.deltaSpeedforTurn)
-               self.motor_RPM_wanted_RIGHT.put(self.cruiseSpeed)
+                # Set turn speeds
+                self.turn_speed = 30 #RPM
 
-            elif self.state == 3:
-               # Turn left
-               self.motor_RPM_wanted_LEFT.put(self.cruiseSpeed)
-               self.motor_RPM_wanted_RIGHT.put(self.cruiseSpeed+self.deltaSpeedforTurn)
+                # Decide which way to turn.
+                if self.Heading < 180:
+                    self.sign = -1
+                    print("Romi will turn LEFT.")
+                else:
+                    self.sign = 1
+                    print("Romi will turn RIGHT.")
 
-            elif self.state == 4:
-               # Turn off motors
-               self.motor_RPM_wanted_LEFT.put(0)
-               self.motor_RPM_wanted_RIGHT.put(0)
+                # State Transition
+                self.state = 1
 
-               # State Transition
-               self.state = 4
+            elif self.state == 1: # Turn!
+
+                # Get current heading
+                self.Heading,self.Roll,self.Pitch = self.IMU.read_Euler_angles()
+   
+                if  270 <= self.Heading <= 360 and self.sign == -1:
+                    print("We were turning LEFT and have reached north!")
+                    self.motor_RPM_wanted_LEFT.put( 0 )
+                    self.motor_RPM_wanted_RIGHT.put(0 ) 
+
+                    # State Transition
+                    self.state = 2
+
+                elif 0 <= self.Heading <= 90 and self.sign == 1:
+                    print("We were turning RIGHT and have reached north!")
+                    self.motor_RPM_wanted_LEFT.put( 0 )
+                    self.motor_RPM_wanted_RIGHT.put(0 ) 
+
+                    # State Transition
+                    self.state = 2
+
+                else:
+                    # Keep Turning!
+                    print(f"Current heading: {self.Heading} deg. Romi will keep turning.")
+                    self.motor_RPM_wanted_LEFT.put(  self.sign*self.turn_speed)
+                    self.motor_RPM_wanted_RIGHT.put(-self.sign*self.turn_speed)
+
+            elif self.state == 2:    
+                # Do nothing.
+                print("Finished turn. Reboot to rerun face_north program.")
+                self.motor_RPM_wanted_LEFT.put( 0 )
+                self.motor_RPM_wanted_RIGHT.put(0 )
+
             else:
                 # Invalid state
-                raise ValueError(f"Invalid State: {self.state}\r")
-            
-            # Poll sensors
-            self.colors = self.sensor.read_color()
-            self.colors = self.colors[::-1]
-            if self.debug == True:
-               print(f"State {self.state}...... {self.colors}")
-
-            # Full Circle?
-            self.encoderTheta_LEFT = self.encoder_LEFT.get_position()/self.encoderCPR # rev
-            self.encoderTheta_RIGHT = self.encoder_RIGHT.get_position()/self.encoderCPR # rev
-            self.distanceTurned = 70/(2*145)*(self.encoderTheta_LEFT - self.encoderTheta_RIGHT)
-            if self.debug == True:
-               print(f"You've turned {round(self.distanceTurned,2)} rev.")
-            if self.revolutionLimit >0:
-               if abs(float(self.distanceTurned)) >= float(self.revolutionLimit): 
-                  self.state = 4
-                  yield
-
-            # State Transition
-            if self.state != 4:   
-               if self.colors[0] == "Black" and self.colors[2] == "White":
-                  self.state = 2
-               elif self.colors[0] == "White" and self.colors[2] == "Black":
-                  self.state = 3
-               else:
-                  self.state = 1
+                raise ValueError(f"Invalid State: {self.state}\r")    
             
             yield self.state 
