@@ -28,15 +28,9 @@ class pilotTask:
         self.motor_RPM_wanted_LEFT = motor_RPM_wanted_LEFT
         self.motor_RPM_wanted_RIGHT = motor_RPM_wanted_RIGHT
 
-    def turn_left_heading(self,
-                          turn_speed: int,
-                          headingWanted: float):
-        self.turn_speed = turn_speed
-        self.headingWanted = headingWanted
-
-        while heading <= headingWanted:
-            self.motor_RPM_wanted_LEFT.put(-self.turn_speed)
-            self.motor_RPM_wanted_RIGHT.put(self.turn_speed)
+    def face_north()
+       self.north = 0 #deg
+       
         
     def run(self):
         while True:
