@@ -1,18 +1,17 @@
+import pyb
 from pyb import I2C
-from csvread import *
-import os
-class BNO055_Driver:
-    def __init__(self,
-                 baudrate: int,
-                 bus: int):
-        
+import time
+import struct  # Add this import statement
+
+class BNO055Driver:
+    def __init__(self, baudrate: int, bus: int):
         # Initialization
-        self.baudate = baudrate
+        self.baudrate = baudrate
         self.bus = bus
-        self.i2c(self.bus, I2C.CONTROLLER, baudrate=baudrate, gencall=False, dma=False)
+        self.i2c = pyb.I2C(self.bus, I2C.MASTER, baudrate=self.baudrate)
 
         # Constants
-        self.timeout = 3000 #ms
+        self.timeout = 10000  # ms
         self.mode_addr = 0x3D
         self.calib_stat_addr = 0x35
         self.unit_sel_addr = 0x3B
@@ -23,164 +22,150 @@ class BNO055_Driver:
         self.acc_calib_mask = 0b0000_1100
         self.mag_calib_mask = 0b0000_0011
         self.axis_placement_mapping = {
-                    "P0": (0x21, 0x04),
-                    "P1": (0x24, 0x00),
-                    "P2": (0x24, 0x06),
-                    "P3": (0x21, 0x02),
-                    "P4": (0x24, 0x03),
-                    "P5": (0x21, 0x01),
-                    "P6": (0x21, 0x07),
-                    "P7": (0x24, 0x05)}
-        # Files
-        self.file_name = "IMU_cal_coeffs.txt"
-        self.files = os.listdir()
-        if self.file_name in self.files:
-            self.x_values,self.y_values,self.titles = csvread(self.file_name)
-            
-        else:
-            raise FileNotFoundError(f"The file {self.file_name} was not found.")
+            "P0": (0x21, 0x04),
+            "P1": (0x24, 0x00),
+            "P2": (0x24, 0x06),
+            "P3": (0x21, 0x02),
+            "P4": (0x24, 0x03),
+            "P5": (0x21, 0x01),
+            "P6": (0x21, 0x07),
+            "P7": (0x24, 0x05)}
 
-        # Set units m/s^2, Dps, deg, degF, Windows 
-        self.i2c.mem_write(0b0001_0000, addr = self.unit_sel_addr) 
-        self.set_mode("IMU")
-        self.configure_coordinate_system("P2")
+    def begin(self):
+        # Set to config mode
+        self.set_mode("CONFIG")
 
-    def set_mode(self,mode: str):
+        # Trigger a reset
+        self.i2c.mem_write(0x20, addr=0x28, memaddr=0x3F)
+
+        # wait
+        time.sleep(1)
+
+        # wait for device to be done booting up
+        # checks until device ID is correct
+        while self.i2c.mem_read(1, addr=0x28, memaddr=0x00)[0] != 0xA0:
+            time.sleep(0.01)
+        time.sleep(0.05)
+
+        # set to normal power mode
+        self.i2c.mem_write(0x00, addr=0x28, memaddr=0x3E)
+        self.i2c.mem_write(0x00, addr=0x28, memaddr=0x07)
+        self.i2c.mem_write(0x00, addr=0x28, memaddr=0x3F)
+        
+        # Set units m/s^2, Dps, deg, degF, Windows
+        #self.i2c.mem_write(0b0001_0000, addr=0x28, memaddr=self.unit_sel_addr)
+        self.set_mode("NDOF")
+        self.configure_coordinate_system()
+        time.sleep(0.02)
+
+        return True
+
+    def set_mode(self, mode: str):
         self.mode = mode
 
-        if self.i2c.is_ready(self.mode_addr):
-            if self.mode == "IMU":
-                self.i2c.mem_write(0b1000, addr = self.mode_addr, timeout=self.timeout)
-            elif self.mode == "COMPASS":
-                self.i2c.mem_write(0b1001, addr = self.mode_addr, timeout=self.timeout)
-            elif self.mode == "M4G":
-                self.i2c.mem_write(0b1010, addr = self.mode_addr, timeout=self.timeout)
-            elif self.mode == "NDOF_FMC_OFF":
-                self.i2c.mem_write(0b1011, addr = self.mode_addr, timeout=self.timeout)
-            elif self.mode == "NDOF":
-                self.i2c.mem_write(0b1100, addr = self.mode_addr, timeout=self.timeout)
-            else:
-                raise Exception(f"Invalid Fusion Mode Selected: {self.mode}.")
+        if self.mode == "CONFIG":
+            self.i2c.mem_write(0x00, addr=0x28, memaddr=0x3D, timeout=self.timeout)
+        elif self.mode == "NDOF":
+            self.i2c.mem_write(0x0C, addr=0x28, memaddr=0x3D, timeout=self.timeout)
         else:
-            raise Exception(f"Address {self.mode_addr} is not ready.")
+            raise Exception(f"Invalid Fusion Mode Selected: {self.mode}.")
+        
+        time.sleep(0.02)
+
+    def configure_coordinate_system(self, coord_sys: str = None):
+        if coord_sys == None:
+            x = 0x01 # remap X to Y
+            y = 0x00 # remap Y to X
+            z = 0x02 # leave z alone
+            x_dir = 0x01 # negative
+            y_dir = 0x00 # positive
+            z_dir = 0x00 # positive
+            self.set_mode("CONFIG")
+            map_config = 0x00
+            map_config |= (z & 0x03) << 4
+            map_config |= (y & 0x03) << 2
+            map_config |= x & 0x03
+            self.i2c.mem_write(map_config, addr=0x28, memaddr=0x41)
+
+            sign_config = 0x00
+            sign_config |= (x_dir & 0x01) << 2
+            sign_config |= (y_dir & 0x01) << 1
+            sign_config |= z_dir & 0x01
+            self.i2c.mem_write(sign_config, addr=0x28, memaddr=0x42)
+
+        elif coord_sys in self.axis_placement_mapping:
+            sign, config = self.axis_placement_mapping[coord_sys]
+            self.i2c.mem_write(sign, addr=0x28, memaddr=self.axis_map_sign_addr)
+            self.i2c.mem_write(config, addr=0x28, memaddr=self.axis_map_config_addr)
+        else:
+            raise ValueError(f"Invalid coordinate system: {coord_sys}. Use one of {list(self.axis_placement_mapping.keys())}.")
+        self.set_mode("NDOF")
 
     def retrieve_calibration_status(self):
-        self.calib_data = bytearray(1)
-        self.i2c.mem_read(self.calib_data,
-                      addr = self.calib_stat_addr,
-                      timeout = self.timeout)
-        
-        if self.calib_data & self.sys_calib_mask == self.sys_calib_mask:
-            self.sys_cal = True 
-        else:
-            self.sys_cal = False
+        calib_data = self.i2c.mem_read(1, addr=0x28, memaddr=0x35)
+        #calib_value = int.from_bytes(calib_data, "little")
+        calib_value = calib_data[0]
 
-        if self.calib_data & self.gyr_calib_mask == self.gyr_calib_mask:
-            self.gyr_cal = True
-        else:
-            self.gyr_cal = False
+        sys_calib = (calib_value >> 6) & 0x03
+        gyr_calib = (calib_value >> 4) & 0x03
+        acc_calib = (calib_value >> 2) & 0x03
+        mag_calib = calib_value & 0x03
 
-        if self.calib_data & self.acc_calib_mask == self.acc_calib_mask:
-            self.acc_cal = True
-        else:
-            self.acc_cal = False
-        
-        if self.calib_data & self.mag_calib_mask == self.mag_calib_mask:
-            self.mag_cal = True
-        else:
-            self.mag_cal = False
+        return sys_calib, gyr_calib, acc_calib, mag_calib
 
-        return self.sys_cal,self.gyr_cal,self.acc_cal,self.mag_cal
-    
     def retrieve_coefficients(self):
+        self.set_mode("CONFIG")
         self.coefficients_to_read = bytearray(22)
-        self.results = [0]*11
-        for index in range(22):
-            self.i2c.mem_read(self.coefficients_to_read[index],
-                                addr = 0x6A - index,
-                                timeout = self.timeout)
-            if index % 2 == 0: 
-                self.results[index//2] = (self.coefficients_to_read[index] << 8) | self.coefficients_to_read[index+1]    
-        
+        self.i2c.mem_read(self.coefficients_to_read, addr=0x28, memaddr=0x55)
+
+        self.results = list(self.coefficients_to_read)
+
+        self.set_mode("NDOF")
         return self.results
+    
+    def write_coefficients(self, coefficients: list):
         
-    def write_coefficients(self,coefficients: list[int]):
-        self.coefficients_to_write = coefficients
+        self.set_mode("CONFIG")
+
+        coefficients_to_write = coefficients
 
         # Test for valid length.
-        if len(self.coefficients_to_write) != 22:
+        if len(coefficients_to_write) != 22:
             raise ValueError("Input does not contain 22 integers.")
         
         # Are all elements in range of a 16-bit sign integer?
-        if any(element < -32768 or element > 32767 for element in self.coefficients_to_write):
-            raise ValueError("At least one element is out of range for a 16-bit number.")
-        
-        # Convert to hex.
-        self.coefficients_to_write_hex = [hex(element) for element in self.coefficients_to_write]
+        if any(int(element) < -32768 or int(element) > 32767 for element in coefficients_to_write):
+           raise ValueError("At least one element is out of range for a 16-bit number.")
+         
+        coefficients=[int(item) for item in coefficients] 
+        data_to_write=bytearray(coefficients)
+        self.i2c.mem_write(data_to_write, addr=0x28, memaddr=0x55)
 
-        # Separate into twice as many 8-bytes and write to registers.
-        for index in range(0,11):
-            self.MSB,self.LSB = self.separate_16bit_hex(self.coefficients_to_write_hex[index])
-            self.i2c.mem_write(self.MSB, addr = 0x6A - 2*index, timeout = self.timeout)
-            self.i2c.mem_write(self.LSB, addr = 0x69 - 2*index, timeout = self.timeout)
+        self.set_mode("NDOF")
 
     def read_Euler_angles(self):
-        self.raw_Euler_angles = bytearray(6)
-        for index in range(6):
-            self.i2c.mem_read( self.raw_Euler_angles[index], 
-                              addr = 0x1A+index )
-        self.EUL_Heading = (self.raw_Euler_angles[0] << 8) | self.raw_Euler_angles[1]
-        self.EUL_Roll = (self.raw_Euler_angles[2] << 8) | self.raw_Euler_angles[3]
-        self.EUL_Pitch = (self.raw_Euler_angles[4] << 8) | self.raw_Euler_angles[5]
+        raw_Euler_angles = bytearray(6)
+        self.i2c.mem_read(raw_Euler_angles, addr=0x28, memaddr=0x1A)
+        Euler_angles = struct.unpack('hhh', struct.pack('BBBBBB', raw_Euler_angles[0], raw_Euler_angles[1], raw_Euler_angles[2], raw_Euler_angles[3], raw_Euler_angles[4], raw_Euler_angles[5]))
 
-        self.Euler_angles = [self.EUL_Heading, self.EUL_Roll, self.EUL_Pitch]
-        self.Euler_angles = [int(hex_val & 0x7FFF) - int(hex_val & 0x8000) for hex_val in self.Euler_angles]
-        self.Euler_angles = [val/16 for val in self.Euler_angles]
-        
-        return self.Euler_angles
-    
+        return tuple([i/16 for i in Euler_angles])
+
     def read_angular_velocities(self):
-        self.raw_angular_velocities = bytearray(6)
-        for index in range(6):
-            self.i2c.mem_read( self.raw_angular_velocities[index],
-                              addr = 0x14 + index)
-            
-        self.gyr_data = [-10000]*3
-        self.gyr_data[0] = (self.raw_angular_velocities[0] << 8) | self.raw_angular_velocities[1]
-        self.gyr_data[1] = (self.raw_angular_velocities[2] << 8) | self.raw_angular_velocities[3]
-        self.gyr_data[2] = (self.raw_angular_velocities[4] << 8) | self.raw_angular_velocities[5]
+        raw_gyr_rate = bytearray(6)
+        self.i2c.mem_read(raw_gyr_rate, addr=0x28, memaddr=0x14)
+        gyr_rate = struct.unpack('hhh', struct.pack('BBBBBB', raw_gyr_rate[0], raw_gyr_rate[1], raw_gyr_rate[2], raw_gyr_rate[3], raw_gyr_rate[4], raw_gyr_rate[5]))
 
-        self.gyr_data = [value/16 for value in self.gyr_data] #Dps
+        return tuple([i/900 for i in gyr_rate])
+    
+    def update_cal_coeffs(self):
+        with open('/flash/IMU_cal_coeff.txt', 'r') as file:
+            line = file.readline()
+        line2 = line.split(",")
+        coeff = [int(b, 16) for b in line2]
+        byte_in = bytearray(coeff)
+        self.i2c.mem_write(byte_in, addr=0x28, memaddr=0x55)
+        return byte_in
 
-        return self.gyr_data
-
-    def configure_coordinate_system(self, axis_placement: str):
-        self.axis_placement = axis_placement
-        if self.axis_placement in self.axis_placement_mapping:
-            self.axis_map_config, self.axis_map_sign = self.axis_placement_mapping[self.axis_placement]
-        else:
-            # Handle the case where the provided axis_placement is not in the mapping
-            print(f"Invalid axis_placement: {self.axis_placement}")
-            # You might want to raise an exception or handle it in some other way
-
-        # Send info
-        self.i2c.mem_write(self.axis_map_config,
-                           addr = self.axis_map_config_addr,
-                           timeout = self.timeout)
-        self.i2c.mem_write(self.axis_map_sign,
-                           addr = self.axis_map_sign_addr,
-                           timeout = self.timeout)
-        
-    def separate_16bit_hex(hex_number):
-        # Ensure the input is a valid hexadecimal string
-        if not isinstance(hex_number, str) or not hex_number.startswith("0x"):
-            raise ValueError("Input must be a 16-bit hexadecimal string starting with '0x'")
-
-        # Remove '0x' prefix and convert to an integer
-        num = int(hex_number, 16)
-
-        # Separate into two 8-bit hex numbers
-        high_byte = (num >> 8) & 0xFF
-        low_byte = num & 0xFF
-
-        return high_byte,low_byte
+    # def write_cal_coeffs(self):
+    #     with open('/flash/IMU_cal_coeff.txt', 'w') as file:
+    #         file.write(','.join(str(x) for x in self.coeffs))
