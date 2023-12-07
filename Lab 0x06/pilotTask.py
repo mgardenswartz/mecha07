@@ -2,7 +2,7 @@ from multiprocessing import Value
 
 
 class pilotTask:
-    def __init__(self,,
+    def __init__(self,
                  cruiseSpeed: int,
                  deltaSpeedforTurn: int,
                  encoder_LEFT,
