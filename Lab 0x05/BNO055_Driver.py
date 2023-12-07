@@ -3,7 +3,7 @@ from pyb import I2C
 import time
 import struct  # Add this import statement
 
-class BNO055_Driver:
+class BNO055Driver:
     def __init__(self, baudrate: int, bus: int):
         # Initialization
         self.baudrate = baudrate
@@ -113,6 +113,8 @@ class BNO055_Driver:
 
         return sys_calib, gyr_calib, acc_calib, mag_calib
 
+    #
+    
     def retrieve_coefficients(self):
         self.set_mode("CONFIG")
         self.coefficients_to_read = bytearray(22)
@@ -123,7 +125,7 @@ class BNO055_Driver:
         self.set_mode("NDOF")
         return self.results
     
-    def write_coefficients(self, coefficients: list[int]):
+    def write_coefficients(self, coefficients: list):
         
         self.set_mode("CONFIG")
 
@@ -142,6 +144,7 @@ class BNO055_Driver:
         self.i2c.mem_write(data_to_write, addr=0x28, memaddr=0x55)
 
         self.set_mode("NDOF")
+
 
     def read_Euler_angles(self):
         raw_Euler_angles = bytearray(6)

@@ -1,22 +1,4 @@
 class motorControlTask:
-    """
-    @brief Class for controlling a motor with feedback from an encoder.
-    @details This class enables open-loop and closed-loop control of a motor using a specified motor, motor control, and encoder object. It supports both open-loop control (using duty cycle) and closed-loop control (maintaining a desired RPM).
-
-    @param motor: Motor object for controlling the physical motor.
-    @param motorControl: Motor control object enabling closed-loop control.
-    @param encoder: Encoder object for reading motor speed feedback.
-    @param controlMode: Control mode (0 for open-loop, 1 for closed-loop control).
-    @param encoderCPR: Counts per revolution for the encoder.
-    @param max_duty: Maximum allowable duty cycle percentage for the motor.
-    @param motor_RPM_wanted: Desired motor speed in RPM for closed-loop control.
-    @param motor_RPM: Current motor speed in RPM (updated during operation).
-    @param motor_duty_wanted: Desired motor duty cycle for open-loop control.
-    @param flip_Speed: Boolean flag to ensure correct sign for closed-loop control.
-    @param debug: Boolean flag for printing debug information over UART.
-
-    @note The class includes internal variables, attributes, and shared variables for managing the motor control task.
-    """
     def __init__(self,
                  motor,
                  motorControl,
@@ -29,7 +11,7 @@ class motorControlTask:
                  motor_duty_wanted,
                  flip_Speed,
                  debug: bool):
-
+        
         # Internal Variables
         self.counter = 0
         self.state = 0
@@ -39,15 +21,17 @@ class motorControlTask:
         self.motor = motor
         self.motorControl = motorControl
         self.encoder = encoder
+
+        # Constants
         self.encoderCPR = encoderCPR
         self.max_duty = max_duty
         self.flip_Speed = flip_Speed
         self.debug = debug
-
+        
         # Shares
-        self.controlMode = controlMode
+        self.controlMode = controlMode 
         self.motor_RPM_wanted = motor_RPM_wanted
-        self.motor_RPM = motor_RPM
+        self.motor_RPM = motor_RPM   
         self.motor_duty_wanted = motor_duty_wanted
 
     def run(self):
