@@ -152,7 +152,8 @@ if __name__ == "__main__":
                               priority = 999,
                               period = 30)
 
-    pilot_Task = Task(pilotTask(cruiseSpeed = cruiseSpeed,
+    pilot_Task = Task(pilotTask(sensor = sensor,
+                                cruiseSpeed = cruiseSpeed,
                                 deltaSpeedforTurn = deltaSpeedforTurn,
                                 encoder_LEFT = encoder_LEFT,
                                 encoder_RIGHT = encoder_RIGHT,
@@ -160,13 +161,13 @@ if __name__ == "__main__":
                                 motor_RPM_wanted_RIGHT=motor_RPM_wanted_RIGHT,
                                 encoderCPR=encoderCPR,
                                 debug = debug,
-                                revolutionLimit = revolutionLimit, IMU=myIMU).face_north,
+                                revolutionLimit = revolutionLimit, IMU=myIMU).run,
                       priority = 2,
-                      period = 30)
+                      period = 100)
     
     IMUTask = Task(IMU_Task(IMU=myIMU).run,
                    priority = 2, 
-                   period = 500)
+                   period = 100)
 
     # Task Scheduler
     task_list.append(motorControl_Task_LEFT)

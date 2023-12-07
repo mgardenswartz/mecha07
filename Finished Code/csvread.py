@@ -1,3 +1,25 @@
+"""!
+@file csvread.py
+This file contains a function to read a text/CSV file
+and return the data contained.
+
+@author Max Gardenswartz
+@date   2023-Oct-01 MLG Approximate date of creation of file
+@date   2023-Dec-06 MLG Fixed an error with ==.
+
+It is intended for educational use only, but its use is not limited thereto.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+
 def csvread(filename):
     # Create an empty list.
     filedata = []
@@ -28,7 +50,7 @@ def csvread(filename):
                     else: #(char.isdigit() == True or char=="-" or char=="."):
                         temp += char
                 except AttributeError: 
-                    filedata[row_index] == [""]
+                    filedata[row_index] = [""]
             # Rewrite the comment-removed data back to filedata.
             filedata[row_index][column_index] = temp
 
@@ -50,11 +72,3 @@ def csvread(filename):
             del filedata[row_index]
     
     return filedata
-
-# filedata = csvread('IMU_cal_coeffs.txt')
-
-# first_row = filedata[0]
-# cal_coeffs = [(int(hex_val,16) & 0x7F) - (int(hex_val,16) & 0x80) for hex_val in first_row]
-
-# print(cal_coeffs)
-

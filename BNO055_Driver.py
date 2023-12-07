@@ -123,7 +123,7 @@ class BNO055Driver:
         self.set_mode("NDOF")
         return self.results
     
-    def write_coefficients(self, coefficients: list):
+    def write_coefficients(self, coefficients: list[int]):
         
         self.set_mode("CONFIG")
 

@@ -1,5 +1,9 @@
+from multiprocessing import Value
+
+
 class pilotTask:
     def __init__(self,
+                 sensor,
                  cruiseSpeed: int,
                  deltaSpeedforTurn: int,
                  encoder_LEFT,
@@ -20,6 +24,7 @@ class pilotTask:
         self.debug = debug
         self.revolutionLimit = revolutionLimit
         self.IMU = IMU
+        self.sensor = sensor
 
         # Variables
         self.state = 0
@@ -29,6 +34,18 @@ class pilotTask:
         # Shares
         self.motor_RPM_wanted_LEFT = motor_RPM_wanted_LEFT
         self.motor_RPM_wanted_RIGHT = motor_RPM_wanted_RIGHT
+
+
+    def run(self):    
+        while True:
+            if self.state == 0:
+                pass
+            elif self.state == 1:
+                pass
+            else:
+                raise ValueError(f"Invalid state: {self.state}.")
+            
+            yield self.state
 
     def face_north(self):
         while True:
@@ -55,7 +72,6 @@ class pilotTask:
                     self.sign = 1
                     print("Romi will turn RIGHT.")
 
-                
                 # State Transition
                 self.state = 1
 

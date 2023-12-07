@@ -36,7 +36,7 @@ class encoderDriver:
         @details This method should be called regularly to update the position.
         It computes the change in encoder count since the last update and adds it to the position.
         """
-        # Read the encoder count
+        # Read the encoder count.
         # This is result of the XOR of channels 1 and 2 of the user specified timer module.
         self.current_count = self.timer.counter()
 
@@ -44,8 +44,6 @@ class encoderDriver:
         self.delta = self.current_count - self.encoder_count
 
         # Handle timer overflow
-        # Should one of these +1's be negative? --Max 
-        # No, it deals with it.
         if self.delta > self.half_max_count:
             # We've overflowed in the negative direction
             self.delta -= self.max_count + 1
@@ -71,7 +69,6 @@ class encoderDriver:
         @brief Gets the most recent change in encoder count.
         @return The most recent change in encoder count (differential).
         """
-       
         return self.delta
 
     def zero(self):
@@ -80,14 +77,26 @@ class encoderDriver:
         @details This method resets the position to zero and accounts for value changes
         needed so that the next call to update() works as expected.
         """
+
+        # It's unknown if this code works properly.
+
         self.position = 0
         self.encoder_count = 0
         self.delta = 0
         self.current_count = 0
 
     def get_speed(self,encoderCPR,controlFrequency):
-        
+        """
+        @brief Returns the encoder speed in RPM
+        @param encoderCPR: Encoder counts per revolution.
+        @param controlFrequency: Frequency of the control loop algorithm in Hz.
+        """
+
+        # Store attributes.
         self.encoderCPR = encoderCPR
         self.controlFrequency = controlFrequency
+
+        # Calculate speed.
         self.speed = self.delta*(self.controlFrequency*60)/self.encoderCPR #RPM
+        
         return self.speed 
