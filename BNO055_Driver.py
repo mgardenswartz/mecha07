@@ -3,7 +3,7 @@ from pyb import I2C
 import time
 import struct  # Add this import statement
 
-class BNO055Driver:
+class BNO055_Driver:
     def __init__(self, baudrate: int, bus: int):
         # Initialization
         self.baudrate = baudrate

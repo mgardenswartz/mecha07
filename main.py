@@ -2,7 +2,7 @@
 import pyb
 import micropython
 import gc 
-from BNO055_Driver import BNO055Driver
+import time
 
 # Ridgely Libaries
 from task_share import *
@@ -12,7 +12,8 @@ from cotask import *
 from closedLoopControl import *
 from encoderDriver import *
 from motorDriver import *
-#from sensorDriver import *
+from sensorDriver import *
+from BNO055_Driver import *
 
 # Our Tasks
 from motorControlTask import *
@@ -43,8 +44,8 @@ if __name__ == "__main__":
 
     # Initialize Shares
     controlMode.put(1)
-    motor_duty_wanted_LEFT.put(10)
-    motor_duty_wanted_RIGHT.put(100)
+    motor_duty_wanted_LEFT.put(0)
+    motor_duty_wanted_RIGHT.put(0)
     motor_RPM_wanted_LEFT.put(0)   # Max speed is 200 RPM
     motor_RPM_wanted_RIGHT.put(0)   # Max speed is 225 RPM
     motor_RPM_LEFT.put(0)
@@ -117,7 +118,9 @@ if __name__ == "__main__":
     # BNO055 IMU
     Pin_I2C1_SCL = pyb.Pin(pyb.Pin.cpu.B8, mode=pyb.Pin.ALT, alt=4)
     Pin_I2C1_SDA = pyb.Pin(pyb.Pin.cpu.B9, mode=pyb.Pin.ALT, alt=4)
-    myIMU = BNO055Driver(bus=1, baudrate=400_000)
+    myIMU = BNO055_Driver(bus=1, baudrate=400_000)
+    myIMU.begin()
+    time.sleep(1)
 
     # Tasks
     motorControl_Task_LEFT = Task(motorControlTask(  motor = motor_LEFT,
@@ -161,11 +164,13 @@ if __name__ == "__main__":
                                 motor_RPM_wanted_RIGHT=motor_RPM_wanted_RIGHT,
                                 encoderCPR=encoderCPR,
                                 debug = debug,
-                                revolutionLimit = revolutionLimit, IMU=myIMU).run,
+                                revolutionLimit = revolutionLimit, IMU=myIMU,
+                                print_flag= True).run,
                       priority = 2,
                       period = 100)
     
-    IMUTask = Task(IMU_Task(IMU=myIMU).run,
+    IMUTask = Task(IMU_Task(IMU=myIMU,
+                            print_flag=False).run,
                    priority = 2, 
                    period = 100)
 
