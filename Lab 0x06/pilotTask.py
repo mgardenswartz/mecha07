@@ -38,7 +38,13 @@ class pilotTask:
     def run(self):    
         while True:
             if self.state == 0:
+<<<<<<< HEAD
                 self.
+=======
+                self.motor_RPM_wanted_LEFT.put(0)
+                self.motor_RPM_wanted_RIGHT.put(0)
+                
+>>>>>>> 9b874c78bef02e96277eba8b07c4b7b665919089
             elif self.state == 1:
                 pass
             else:
