@@ -162,7 +162,7 @@ if __name__ == "__main__":
     pyb.Pin.cpu.C12,  # Change this to the actual pin for sensor 3
     pyb.Pin.cpu.D2,  # Change this to the actual pin for sensor 4
     pyb.Pin.cpu.C8,  # Change this to the actual pin for sensor 5
-    pyb.Pin.cpu.A13   # Change this to the actual pin for sensor 6
+    pyb.Pin.cpu.A15   # Change this to the actual pin for sensor 6
     ]
     # Configure the bumper pins as input with pull-up resistors
     bumpers = [pyb.Pin(pin, pyb.Pin.IN, pull=pyb.Pin.PULL_UP) for pin in bumper_pins]
