@@ -29,6 +29,9 @@ class LineColorReader:
         # Create QTRSensors instance with two emitter pins
         self.qtr_sensors = QTRSensors(sensor_pins, emitterPin=pyb.Pin.cpu.A5, evenEmitterPin=pyb.Pin.cpu.A5)
 
+        # Set the dimming level (adjust as needed)
+        self.qtr_sensors.dimmingLevel = 5
+
     def read_line_color(self):
         # Read sensor values
         self.qtr_sensors.read()
@@ -40,13 +43,12 @@ class LineColorReader:
             raw_value = self.qtr_sensors.values[i]
             
             # Organize output for each sensor
-            sensor_info = f"Sensor {i+1}: Raw Value: {raw_value}, Color: {'White' if raw_value > 800 else 'Black'}"
-            
+            #sensor_info = f"Sensor {i+1}: Raw Value: {raw_value}, Color: {'White' if raw_value < 800 else 'Black'}"
+            sensor_info = f"{'White' if raw_value < 800 else 'Black'}"
             output.append(sensor_info)
 
         # Print organized output horizontally
         print(" | ".join(output))
-
 
 if __name__ == "__main__":
 
