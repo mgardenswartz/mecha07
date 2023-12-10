@@ -1,6 +1,3 @@
-from multiprocessing import Value
-
-
 class pilotTask:
     def __init__(self,
                  cruiseSpeed: int,

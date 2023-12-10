@@ -1,6 +1,7 @@
 # Micropython Imports
 import pyb
 import micropython
+from time import sleep_ms
 
 # Ridgely Libaries
 from task_share import *
@@ -237,7 +238,9 @@ if __name__ == "__main__":
     # Run the scheduler
     while True:
         try: 
-            task_list.pri_sched()
+            #task_list.pri_sched()
+            print(secondSensorArray.read_color()[::-1])
+            sleep_ms(100)
         except KeyboardInterrupt:
             #vcp.write("Exiting Program.\r\n")
             motor_LEFT.set_duty(0)
