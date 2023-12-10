@@ -27,7 +27,7 @@ class LineColorReader:
 
 def main():
     # Define your sensor pins
-    sensor_pins = [pyb.Pin.cpu.C4, pyb.Pin.cpu.C3, pyb.Pin.cpu.C2, pyb.Pin.cpu.B1, pyb.Pin.cpu.C5, pyb.Pin.cpu.C0]
+    sensor_pins = [pyb.Pin.cpu.A5, pyb.Pin.cpu.A6, pyb.Pin.cpu.A2, pyb.Pin.cpu.A4, pyb.Pin.cpu.B0, pyb.Pin.cpu.C1]
 
     # Create LineColorReader instance
     line_color_reader = LineColorReader(sensor_pins)
