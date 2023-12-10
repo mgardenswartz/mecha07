@@ -12,6 +12,7 @@ from encoderDriver import *
 from motorDriver import *
 from sensorDriver import *
 from BNO055_Driver import *
+from qtrsensors import QTRSensors, EMITTERS_NONE
 
 # Our Tasks
 from motorControlTask import *
@@ -21,6 +22,30 @@ from IMU_Task import *
 
 # Troubleshoots PuTTy! -- Thank you, Jack Miller.
 micropython.alloc_emergency_exception_buf(100)
+
+class LineColorReader:
+    def __init__(self, sensor_pins):
+        # Create QTRSensors instance with two emitter pins
+        self.qtr_sensors = QTRSensors(sensor_pins, emitterPin=pyb.Pin.cpu.A5, evenEmitterPin=pyb.Pin.cpu.A5)
+
+    def read_line_color(self):
+        # Read sensor values
+        self.qtr_sensors.read()
+
+        # Read line position for each sensor
+        output = []
+
+        for i, pin in enumerate(self.qtr_sensors.sensorPins):
+            raw_value = self.qtr_sensors.values[i]
+            
+            # Organize output for each sensor
+            sensor_info = f"Sensor {i+1}: Raw Value: {raw_value}, Color: {'White' if raw_value > 800 else 'Black'}"
+            
+            output.append(sensor_info)
+
+        # Print organized output horizontally
+        print(" | ".join(output))
+
 
 if __name__ == "__main__":
 
@@ -117,6 +142,19 @@ if __name__ == "__main__":
                              channel_b_pin = pyb.Pin.cpu.B5, 
                              max_count = AutoReloadValue) 
     
+    # Front Sensor Array
+    sensor_pins = [pyb.Pin.cpu.A5, pyb.Pin.cpu.A6, pyb.Pin.cpu.A2, pyb.Pin.cpu.A4, pyb.Pin.cpu.B0, pyb.Pin.cpu.C1]
+
+    # Create LineColorReader instance
+    firstSensorArray = LineColorReader(sensor_pins)
+    # Read colors with colors=line_color_reader.read_line_color()
+
+    # Secondary Sensor Array
+    secondSensorArray = sensorDriver(Pins=[ pyb.Pin.cpu.C4, pyb.Pin.cpu.C3, pyb.Pin.cpu.C2, pyb.Pin.cpu.B1, pyb.Pin.cpu.C5, pyb.Pin.cpu.C0 ],
+                                    whiteCalibration = [2604, 2436, 1145, 1935, 2009, 2447],
+                                    blackCalibration = [3564, 3389, 2815, 3031, 3394, 3544]) 
+    # Read colors with colors=secondSensorArray.read_color()[::-1]
+
     # BNO055 IMU
     Pin_I2C1_SCL = pyb.Pin(pyb.Pin.cpu.B8, mode=pyb.Pin.ALT, alt=4)
     Pin_I2C1_SDA = pyb.Pin(pyb.Pin.cpu.B9, mode=pyb.Pin.ALT, alt=4)
@@ -163,8 +201,11 @@ if __name__ == "__main__":
                                 motor_RPM_wanted_LEFT=motor_RPM_wanted_LEFT,
                                 motor_RPM_wanted_RIGHT=motor_RPM_wanted_RIGHT,
                                 encoderCPR=encoderCPR,
-                                revolutionLimit = revolutionLimit, IMU=myIMU,
-                                print_flag= debug).run,
+                                revolutionLimit = revolutionLimit,
+                                IMU=myIMU,
+                                print_flag= debug,
+                                firstRow = firstSensorArray,
+                                secondRow = secondSensorArray).run,
                       priority = 2,
                       period = 100)
     

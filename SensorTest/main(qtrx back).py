@@ -23,19 +23,19 @@ micropython.alloc_emergency_exception_buf(100)
 from time import sleep_ms
 
 if __name__ == "__main__":
-   frontSensorArray = sensorDriver(Pins=[ pyb.Pin.cpu.C4, pyb.Pin.cpu.C3, pyb.Pin.cpu.C2, pyb.Pin.cpu.B1, pyb.Pin.cpu.C5, pyb.Pin.cpu.C0 ],
-                                     whiteCalibration = [3055, 3037, 2173, 2692, 2681, 3145],
-                                     blackCalibration = [3956, 3976, 3409, 3636, 3619, 3801]) 
+   secondSensorArray = sensorDriver(Pins=[ pyb.Pin.cpu.C4, pyb.Pin.cpu.C3, pyb.Pin.cpu.C2, pyb.Pin.cpu.B1, pyb.Pin.cpu.C5, pyb.Pin.cpu.C0 ],
+                                     whiteCalibration = [2604, 2436, 1145, 1935, 2009, 2447],
+                                     blackCalibration = [3564, 3389, 2815, 3031, 3394, 3544]) 
 
    while True:
-      readings = frontSensorArray.read_raw()
+      readings = secondSensorArray.read_raw()
       readings = readings[::-1]
-      colors = frontSensorArray.read_color()
+      colors = secondSensorArray.read_color()
       colors = colors[::-1]
-      percentBrightness = frontSensorArray.read_brightness()
+      percentBrightness = secondSensorArray.read_brightness()
       percentBrightness = percentBrightness[::-1]
       percentBrightness = ', '.join(map(str,percentBrightness))
-      print(f"{percentBrightness},{colors}")
-      print(readings)
+      #print(f"{percentBrightness},{colors}")
+      #print(readings)
       print(colors)
-      sleep_ms(30)
+      sleep_ms(250)
