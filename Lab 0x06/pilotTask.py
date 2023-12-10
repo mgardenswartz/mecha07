@@ -14,7 +14,8 @@ class pilotTask:
                  IMU,
                  print_flag: bool,
                  firstRow,
-                 secondRow):
+                 secondRow,
+                 bumpers):
         
         # Attributes
         self.cruiseSpeed = cruiseSpeed
@@ -26,6 +27,7 @@ class pilotTask:
         self.IMU = IMU
         self.firstRow = firstRow
         self.secondRow = secondRow
+        self.bumpers = bumpers
 
         # Variables
         self.state = 0

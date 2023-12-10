@@ -125,7 +125,7 @@ if __name__ == "__main__":
     # Intialize Right Motor
     motor_RIGHT = motorDriver(PWM_timer = timerPWM, 
                              EN_pin = pyb.Pin.cpu.H1,
-                             Dir_pin = pyb.Pin.cpu.H0,
+                             Dir_pin = pyb.Pin.cpu.H0, 
                              EFF_pin= pyb.Pin.cpu.B7,
                              PWM_channel = 2)
     motorControl_RIGHT = closedLoopControl(controlFrequency = controlFrequency,
@@ -144,7 +144,6 @@ if __name__ == "__main__":
     
     # Front Sensor Array
     sensor_pins = [pyb.Pin.cpu.A5, pyb.Pin.cpu.A6, pyb.Pin.cpu.A2, pyb.Pin.cpu.A4, pyb.Pin.cpu.B0, pyb.Pin.cpu.C1]
-
     # Create LineColorReader instance
     firstSensorArray = LineColorReader(sensor_pins)
     # Read colors with colors=line_color_reader.read_line_color()
@@ -154,6 +153,19 @@ if __name__ == "__main__":
                                     whiteCalibration = [2604, 2436, 1145, 1935, 2009, 2447],
                                     blackCalibration = [3564, 3389, 2815, 3031, 3394, 3544]) 
     # Read colors with colors=secondSensorArray.read_color()[::-1]
+
+    # # Define GPIO pins connected to the bumper sensors
+    bumper_pins = [
+    pyb.Pin.cpu.C10,  # Change this to the actual pin for sensor 1
+    pyb.Pin.cpu.C11,  # Change this to the actual pin for sensor 2
+    pyb.Pin.cpu.C12,  # Change this to the actual pin for sensor 3
+    pyb.Pin.cpu.D2,  # Change this to the actual pin for sensor 4
+    pyb.Pin.cpu.C8,  # Change this to the actual pin for sensor 5
+    pyb.Pin.cpu.A13   # Change this to the actual pin for sensor 6
+    ]
+    # Configure the bumper pins as input with pull-up resistors
+    bumpers = [pyb.Pin(pin, pyb.Pin.IN, pull=pyb.Pin.PULL_UP) for pin in bumper_pins]
+    # Read the state of the bumper sensors with states = [bumper.value() for bumper in bumpers]
 
     # BNO055 IMU
     Pin_I2C1_SCL = pyb.Pin(pyb.Pin.cpu.B8, mode=pyb.Pin.ALT, alt=4)
@@ -205,7 +217,8 @@ if __name__ == "__main__":
                                 IMU=myIMU,
                                 print_flag= debug,
                                 firstRow = firstSensorArray,
-                                secondRow = secondSensorArray).run,
+                                secondRow = secondSensorArray,
+                                bumpers = bumpers).run,
                       priority = 2,
                       period = 100)
     
