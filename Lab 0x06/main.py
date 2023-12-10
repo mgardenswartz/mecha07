@@ -48,7 +48,8 @@ class LineColorReader:
             output.append(sensor_info)
 
         # Print organized output horizontally
-        print(" | ".join(output))
+        # print(" | ".join(output))
+        return output
 
     def read_raw(self):
         # Read sensor values
@@ -63,7 +64,32 @@ class LineColorReader:
 
         return output
 
-        # Print organized output horizontally
+    def read_brightness(self):
+        self.readings = self.read_raw()
+        self.blackCalibration = [1028, 1028, 1028, 1028, 1028, 1724]
+        self.whiteCalibration = [285, 285, 285, 285, 285, 537]
+
+        # Rescale
+        self.analogRange = [0]*6
+        self.percentBrightness = [0]*6
+        for index in range(6):
+            self.analogRange[index] = self.whiteCalibration[index] - self.blackCalibration[index]
+            self.percentBrightness[index] = (self.readings[index] - self.blackCalibration[index])/self.analogRange[index]*100
+            self.percentBrightness[index] = round(self.percentBrightness[index])
+        return self.percentBrightness         
+
+    def read_color(self):
+      self.percentBrightness = self.read_brightness()
+
+      # Convert brightness to color.
+      self.colors = [""]*6
+      for index in range(6):
+         if self.percentBrightness[index] >= 50:
+            self.colors[index] = "White" 
+         else:
+            self.colors[index] = "Black" 
+
+      return self.colors
 if __name__ == "__main__":
 
     # Disable REPL on UART2
@@ -161,8 +187,8 @@ if __name__ == "__main__":
 
     # Secondary Sensor Array
     secondSensorArray = sensorDriver(Pins=[ pyb.Pin.cpu.C4, pyb.Pin.cpu.C3, pyb.Pin.cpu.C2, pyb.Pin.cpu.B1, pyb.Pin.cpu.C5, pyb.Pin.cpu.C0 ],
-                                    whiteCalibration = [2604, 2436, 1145, 1935, 2009, 2447],
-                                    blackCalibration = [3564, 3389, 2815, 3031, 3394, 3544]) 
+                                    whiteCalibration = [2383, 2159, 697, 1550, 1691, 2048],
+                                    blackCalibration = [3898, 3677, 3215, 3485, 3483, 3815]) 
     # Read colors with colors=secondSensorArray.read_color()[::-1]
 
     # # Define GPIO pins connected to the bumper sensors
@@ -248,10 +274,11 @@ if __name__ == "__main__":
     # Run the scheduler
     while True:
         try: 
-            #task_list.pri_sched()
-            print(firstSensorArray.read_raw())
-            print(secondSensorArray.read_brightness().reverse())
-            sleep_ms(100)
+            task_list.pri_sched()
+            # print("-"*50)
+            # print(firstSensorArray.read_line_color())
+            # print(secondSensorArray.read_color()[::1])
+            # sleep_ms(100)
         except KeyboardInterrupt:
             #vcp.write("Exiting Program.\r\n")
             motor_LEFT.set_duty(0)

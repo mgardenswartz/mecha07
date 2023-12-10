@@ -73,7 +73,7 @@ class BNO055_Driver:
         self.set_mode("NDOF")
 
         # Set up correct coordinate system for our Romi specifically.
-        self.configure_coordinate_system() # type: ignore
+        self.configure_coordinate_system() 
 
         # Wait
         time.sleep(0.02)
@@ -101,7 +101,7 @@ class BNO055_Driver:
         
         time.sleep(0.02)
 
-    def configure_coordinate_system(self, coord_sys: str):
+    def configure_coordinate_system(self, coord_sys: str = None):
         """
         @brief Configure the coordinate system for the BNO055 IMU.
         @details This method determines the correct orientation for the coordinate system on the IMU. If no specific coordinate system is provided, it uses default values. Otherwise, it checks for valid pre-defined coordinate systems.

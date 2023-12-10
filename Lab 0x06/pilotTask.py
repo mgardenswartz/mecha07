@@ -33,7 +33,7 @@ class pilotTask:
         self.max_turn_speed = 60
         self.one_time = True
 
-        # Shares
+        # Share
         self.motor_RPM_wanted_LEFT = motor_RPM_wanted_LEFT
         self.motor_RPM_wanted_RIGHT = motor_RPM_wanted_RIGHT
         self.stop()
@@ -47,29 +47,43 @@ class pilotTask:
                 
             elif self.state == 1:
                 # Turn left in place
-                self.turn(turnSpeed = 20, #deg/s
+                self.turn(turnSpeed = 5, #deg/s
                           direction = "left")
             elif self.state == 2:
                 # Turn right in place
-                self.turn(turnSpeed = 20, #deg/s
+                self.turn(turnSpeed = 10, #deg/s
                           direction = "right")
+            elif self.state == 3:
+                self.stop()
             else:
                 raise ValueError(f"Invalid state: {self.state}.")
             
             # Read sensors
-            self.colorsFirstRaw = [1 if color == "Black" else 0 for color in self.firstRow.read_line_color()]
-            self.colorsSecond = [1 if color == "Black" else 0 for color in self.secondRow.read_colors().reverse()]
+            self.colorsFirst = [1 if color == "Black" else 0 for color in self.firstRow.read_line_color()]
+            self.colorsSecond = [1 if color == "Black" else 0 for color in self.secondRow.read_colors()[::1]]
+
+            print(self.firstRow)
+            # First Row [2] is invalid.
+            print(self.secondRow)
+
+            # One of the sensors is all blank.
+            # if self.colorsFirst == [0]*6 or self.colorsSecond == [0,0,1,0,0,0]:
+            #     # 
+
+            if self.colorsFirst[1] == 1 and self.colorsFirst[4] == 0: 
+                self.state = 1
+            if self.colorsFirst[1] == 0 and self.colorsFirst[4] == 1:
+                self.state = 2
+            else:
+                self.state = 0
             
-            if 
-
-
-
-
-
-
-
+            self.bumperStates = [bumper.value() for bumper in self.bumpers]
+            if any(self.bumperStates):
+                print("A bumper was pressed!")
 
             yield self.state
+
+            
 
 
 
