@@ -1,5 +1,4 @@
-import pyb
-from pyb import I2C
+import pyb # type: ignore
 import time
 import struct  # Add this import statement
 
@@ -16,7 +15,7 @@ class BNO055_Driver:
         # Initialization
         self.baudrate = baudrate
         self.bus = bus
-        self.i2c = pyb.I2C(self.bus, I2C.MASTER, baudrate=self.baudrate)
+        self.i2c = pyb.I2C(self.bus, pyb.I2C.MASTER, baudrate=self.baudrate)
 
         # Constants
         self.timeout = 10000  # ms
@@ -74,7 +73,7 @@ class BNO055_Driver:
         self.set_mode("NDOF")
 
         # Set up correct coordinate system for our Romi specifically.
-        self.configure_coordinate_system()
+        self.configure_coordinate_system() # type: ignore
 
         # Wait
         time.sleep(0.02)
@@ -102,7 +101,7 @@ class BNO055_Driver:
         
         time.sleep(0.02)
 
-    def configure_coordinate_system(self, coord_sys: str = None):
+    def configure_coordinate_system(self, coord_sys: str):
         """
         @brief Configure the coordinate system for the BNO055 IMU.
         @details This method determines the correct orientation for the coordinate system on the IMU. If no specific coordinate system is provided, it uses default values. Otherwise, it checks for valid pre-defined coordinate systems.

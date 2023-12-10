@@ -24,8 +24,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import array
 import gc
-import pyb
-import micropython
+import pyb # type: ignore
+import micropython # type: ignore
 
 
 ## This is a system-wide list of all the queues and shared variables. It is

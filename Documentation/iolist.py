@@ -12,6 +12,7 @@ while True:
 
     # Find the index of the pin in CN7
     index_found_in = None
+    found_in_list = None
     for i, item in enumerate(CN7):
         if item == myPin:
             index_found_in = i

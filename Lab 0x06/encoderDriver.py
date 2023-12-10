@@ -1,4 +1,4 @@
-import pyb
+import pyb # type: ignore
 class encoderDriver:
     """
     @brief Class for reading encoder values using a timer.
