@@ -93,8 +93,8 @@ if __name__ == "__main__":
                                   prescaler = 0) 
 
     encoder_LEFT = encoderDriver(encoderTimer_LEFT, 
-                        channel_a_pin = pyb.Pin.cpu.A0, 
-                        channel_b_pin = pyb.Pin.cpu.A1, 
+                        channel_a_pin = pyb.Pin.cpu.C13, 
+                        channel_b_pin = pyb.Pin.cpu.C14, 
                         max_count = AutoReloadValue) 
     
     # Intialize Right Motor
