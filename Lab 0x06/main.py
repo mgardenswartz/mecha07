@@ -50,6 +50,20 @@ class LineColorReader:
         # Print organized output horizontally
         print(" | ".join(output))
 
+    def read_raw(self):
+        # Read sensor values
+        self.qtr_sensors.read()
+
+        # Read line position for each sensor
+        output = []
+
+        for i, pin in enumerate(self.qtr_sensors.sensorPins):
+            raw_value = self.qtr_sensors.values[i]
+            output.append(raw_value)
+
+        return output
+
+        # Print organized output horizontally
 if __name__ == "__main__":
 
     # Disable REPL on UART2
@@ -95,10 +109,6 @@ if __name__ == "__main__":
     toggle_RIGHT = False # Changes the sign of the summing junction 
     flip_Speed_LEFT = True # Changes the speed printout's sign
     flip_Speed_RIGHT = True # Changes the speed printout's sign
-
-    # Initialize sensors.
-    # primarySensor = 
-    # secondarySensor = 
 
     # Initializate PWM
     timerPWM = pyb.Timer(4, 
@@ -146,9 +156,7 @@ if __name__ == "__main__":
                              max_count = AutoReloadValue) 
     
     # Front Sensor Array
-    sensor_pins = [pyb.Pin.cpu.A5, pyb.Pin.cpu.A6, pyb.Pin.cpu.A2, pyb.Pin.cpu.A4, pyb.Pin.cpu.B0, pyb.Pin.cpu.C1]
-    # Create LineColorReader instance
-    firstSensorArray = LineColorReader(sensor_pins)
+    firstSensorArray = LineColorReader([pyb.Pin.cpu.A5, pyb.Pin.cpu.A6, pyb.Pin.cpu.A2, pyb.Pin.cpu.A4, pyb.Pin.cpu.B0, pyb.Pin.cpu.C1])
     # Read colors with colors=line_color_reader.read_line_color()
 
     # Secondary Sensor Array
@@ -241,7 +249,8 @@ if __name__ == "__main__":
     while True:
         try: 
             #task_list.pri_sched()
-            print(secondSensorArray.read_color()[::-1])
+            print(firstSensorArray.read_raw())
+            print(secondSensorArray.read_brightness().reverse())
             sleep_ms(100)
         except KeyboardInterrupt:
             #vcp.write("Exiting Program.\r\n")

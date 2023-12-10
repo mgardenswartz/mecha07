@@ -57,11 +57,9 @@ class pilotTask:
                 raise ValueError(f"Invalid state: {self.state}.")
             
             # Read sensors
-            self.colorsFirstRaw = self.firstRow.read_line_color()
-            self.colorsSecond = self.secondRow.read_colors().reverse()
-            for index in self.colorsFirstRaw:
-                if self.colorsFirstRaw[] = 
-                self.colorsFirst == 
+            self.colorsFirstRaw = [1 if color == "Black" else 0 for color in self.firstRow.read_line_color()]
+            self.colorsSecond = [1 if color == "Black" else 0 for color in self.secondRow.read_colors().reverse()]
+            
             if 
 
 
