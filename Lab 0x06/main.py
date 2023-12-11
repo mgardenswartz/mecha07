@@ -1,7 +1,7 @@
 # Micropython Imports
 import pyb
 import micropython
-from time import sleep_ms
+from time import sleep, sleep_ms
 
 # Ridgely Libaries
 from task_share import *
@@ -139,6 +139,7 @@ if __name__ == "__main__":
     Kp_line = 0.6
     Ki_line = 10
     max_spin = 30 # dps
+    IMUcalibrationTime = 2 # seconds
 
     # Initializate PWM
     timerPWM = pyb.Timer(4, 
@@ -224,6 +225,7 @@ if __name__ == "__main__":
     Pin_I2C1_SDA = pyb.Pin(pyb.Pin.cpu.B9, mode=pyb.Pin.ALT, alt=4)
     myIMU = BNO055_Driver(bus=1, baudrate=400_000)
     myIMU.begin_calibration()
+    sleep_ms(IMUcalibrationTime*1000)
 
     # Tasks
     motorControl_Task_LEFT = Task(motorControlTask(  motor = motor_LEFT,
