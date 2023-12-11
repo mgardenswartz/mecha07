@@ -29,8 +29,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 import gc                              # Memory allocation garbage collector
-import utime                           # Micropython version of time library
-import micropython                     # This shuts up incorrect warnings
+import utime                           # Micropython version of time library # type: ignore
+import micropython                     # This shuts up incorrect warnings # type: ignore
 
 
 class Task:

@@ -66,3 +66,9 @@ class closedLoopControl:
         @param new_Kp New value of Kp.'''
         
         self.Kp = new_Kp
+
+    def update_Ki(self,new_Ki):
+        '''!@brief Sets a new value of Ki.
+        @param new_Ki New value of Ki.'''
+        
+        self.Ki = new_Ki

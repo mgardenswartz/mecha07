@@ -1,9 +1,9 @@
 from pyb import Pin, ADC
 class sensorDriver:
    def __init__(self,
-      Pins: list(Pin),
-      whiteCalibration: list(int),
-      blackCalibration: list(int)):
+      Pins: list(Pin), # type: ignore
+      whiteCalibration: list(int), # type: ignore
+      blackCalibration: list(int)): # type: ignore
 
       # Constants
       self.numberOfPins = len(Pins)
@@ -29,7 +29,7 @@ class sensorDriver:
    def read_raw(self):
       self.readings = [None]*self.numberOfPins
       for index in range(self.numberOfPins):
-         self.readings[index] = self.adc[index].read()
+         self.readings[index] = self.adc[index].read() # type: ignore
 
       return self.readings
    
@@ -53,9 +53,9 @@ class sensorDriver:
       self.colors = [None]*self.numberOfPins
       for index in range(self.numberOfPins):
          if self.percentBrightness[index] >= 50:
-            self.colors[index] = "White"
+            self.colors[index] = "White" # type: ignore
          else:
-            self.colors[index] = "Black"
+            self.colors[index] = "Black" # type: ignore
 
       return self.colors
    
