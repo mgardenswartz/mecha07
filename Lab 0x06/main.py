@@ -260,7 +260,7 @@ if __name__ == "__main__":
                       period = 100)
     
     IMUTask = Task(IMU_Task(IMU=myIMU,
-                            print_flag=debug).run,
+                            print_flag= not debug).run,
                    priority = 2, 
                    period = 100)
 
