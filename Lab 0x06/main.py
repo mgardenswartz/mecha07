@@ -256,11 +256,11 @@ if __name__ == "__main__":
                                  priority = 1,
                                  period = 1000/controlFrequency)
 
-    garbageCollect_Task = Task(garbageCollectTask().run,
+    myGarbageCollectTask = Task(garbageCollectTask().run,
                               priority = 999,
                               period = 30)
 
-    pilot_Task = Task(pilotTask(cruiseSpeed = cruiseSpeed,
+    myPilotTask = Task(pilotTask(cruiseSpeed = cruiseSpeed,
                                 deltaSpeedforTurn = deltaSpeedforTurn,
                                 encoder_LEFT = encoder_LEFT,
                                 encoder_RIGHT = encoder_RIGHT,
@@ -280,7 +280,7 @@ if __name__ == "__main__":
                       priority = 2,
                       period = 1000/pilotTaskFrequency)
     
-    IMUTask = Task(IMU_Task(IMU=myIMU,
+    myIMUTask = Task(IMU_Task(IMU=myIMU,
                             print_flag= not debug).run,
                    priority = 2, 
                    period = 1000/pilotTaskFrequency)
@@ -288,9 +288,9 @@ if __name__ == "__main__":
     # Task Scheduler
     task_list.append(motorControl_Task_LEFT)
     task_list.append(motorControl_Task_RIGHT)
-    task_list.append(garbageCollect_Task)
-    task_list.append(pilot_Task)
-    task_list.append(IMUTask)
+    task_list.append(myGarbageCollectTask)
+    task_list.append(myPilotTask)
+    task_list.append(myIMUTask)
 
     # Run the scheduler
     while True:
