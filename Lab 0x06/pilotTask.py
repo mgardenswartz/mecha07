@@ -13,7 +13,10 @@ class pilotTask:
                  firstLeftRow,
                  firstRightRow,
                  secondRow,
-                 bumpers):
+                 bumpers,
+                 debug: bool,
+                 controller,
+                 max_spin: float):
         
         # Attributes
         self.cruiseSpeed = cruiseSpeed
@@ -27,6 +30,9 @@ class pilotTask:
         self.firstRightRow = firstRightRow
         self.secondRow = secondRow
         self.bumpers = bumpers
+        self.debug = debug
+        self.controller = controller
+        self.max_spin = max_spin
 
         # Variables
         self.state = 3
@@ -42,46 +48,70 @@ class pilotTask:
 
     def run(self):    
         while True:
-            if self.state == 0:
-                # Cruise
+            # if self.state == 0:
+            #     # Cruise
+            #     self.drive(speed = 10, # mm/s
+            #                direction = "forward")
+            # elif self.state == 1:
+            #     # Turn left in place
+            #     self.turn(turnSpeed = 5, #deg/s
+            #               direction = "left")
+            # elif self.state == 2:
+            #     # Turn right in place
+            #     self.turn(turnSpeed = 10, #deg/s
+            #               direction = "right")
+            # elif self.state == 3:
+            #     self.stop()
+            # else:
+            #     raise ValueError(f"Invalid state: {self.state}.")
+            
+            # Read Sensors
+            self.firstLeftColors = self.firstLeftRow.read_color()[::1]
+            self.firstRightColors = self.firstRightRow.read_color()[::1]
+            self.firstColors = self.firstLeftColors.extend(self.firstRightColors)
+            self.secondColors = self.secondRow.read_color()[::1]
+            self.firstLeftValues = self.firstLeftRow.read_raw()[::1]
+            self.firstRightValues = self.firstRightRow.read_raw()[::1]
+            self.firstValues = self.firstLeftValues.extend(self.firstRightValues)
+            self.secondValues = self.secondRow.read_raw()[::1]
+
+            # Remove Sensor 0 
+            self.firstColors = self.firstColors[1:]
+
+            # Line Position
+            self.firstTerms = [0]*len(self.firstColors)
+            self.secondTerms = [0]*len(self.secondColors)
+            for i in range(len(self.firstTerms)):
+                self.firstTerms[i] = self.firstValues*(i+1+1)/len(self.firstValues) 
+            for i in range(len(self.secondTerms)):
+                self.secondTerms[i] = self.secondValues*(i+1)/len(self.secondValues)
+
+            # Error for PI controller.
+            self.firstAverage = sum(self.firstTerms)
+            self.secondAverage = sum(self.secondTerms)
+            self.askewness = self.firstAverage - self.secondAverage
+            self.spin_effort = self.controller.get_effort_sat(ref = 0,
+                                                         meas = self.askewness,
+                                                         satLimit = self.max_spin)   
+
+            # Controller
+            if abs(self.spin_effort) < 10:
                 self.drive(speed = 10, # mm/s
                            direction = "forward")
-                
-            elif self.state == 1:
-                # Turn left in place
-                self.turn(turnSpeed = 5, #deg/s
-                          direction = "left")
-            elif self.state == 2:
-                # Turn right in place
-                self.turn(turnSpeed = 10, #deg/s
+            else: 
+                self.turn( turnSpeed = self.spin_effort, # Dps
                           direction = "right")
-            elif self.state == 3:
-                self.stop()
-            else:
-                raise ValueError(f"Invalid state: {self.state}.")
-            
-            # Read sensors
-            # self.colorsFirstRaw = self.firstRow.read_line_color()
-            # self.colorsSecondRaw = self.secondRow.read_color()[::1]
-            # self.colorsFirst = [1 if color == "Black" else 0 for color in self.colorsFirstRaw]
-            # self.colorsSecond = [1 if color == "Black" else 0 for color in self.colorsSecondRaw]
-            
-            print("-"*50)
-            print(self.firstLeftRow.read_line_color())
-            print(self.firstRightRow.read_line_color())
-            print(self.secondRow.read_color()[::1])
 
-            # One of the sensors is all blank.
-            # if self.colorsFirst == [0]*6 or self.colorsSecond == [0,0,1,0,0,0]:
-            #     # 
-
-            # if self.colorsFirst[1] == 1 and self.colorsFirst[4] == 0: 
-            #     self.state = 1
-            # if self.colorsFirst[1] == 0 and self.colorsFirst[4] == 1:
-            #     self.state = 2
-            # else:
-            #     self.state = 0
+            # Prints
+            if self.debug:
+                print("-"*80)
+                print(self.firstColors)
+                print(self.firstValues)
+                print(self.secondColors)
+                print(self.secondValues)
+                print(f"Askewness is {self.spin_effort}.")
             
+            # Bumpers
             self.bumperStates = [not(bumper.value()) for bumper in self.bumpers]
             if any(self.bumperStates):
                 print("A bumper was pressed!")

@@ -135,6 +135,10 @@ if __name__ == "__main__":
     toggle_RIGHT = False # Changes the sign of the summing junction 
     flip_Speed_LEFT = True # Changes the speed printout's sign
     flip_Speed_RIGHT = True # Changes the speed printout's sign
+    pilotTaskFrequency = 10 # Hz
+    Kp_line = 0.6
+    Ki_line = 10
+    max_spin = 30 # dps
 
     # Initializate PWM
     timerPWM = pyb.Timer(4, 
@@ -195,6 +199,12 @@ if __name__ == "__main__":
                                     whiteCalibration = [2383, 2159, 697, 1550, 1691, 2048],
                                     blackCalibration = [3898, 3677, 3215, 3485, 3483, 3815])
     # Read colors with colors=secondSensorArray.read_color()[::-1]
+
+    # Line Sensor PI Controller
+    lineSensorControl = closedLoopControl(controlFrequency = pilotTaskFrequency,
+                                          toggle = False,
+                                          Kp = Kp_line, 
+                                          Ki = Ki_line)
 
     # # Define GPIO pins connected to the bumper sensors
     bumper_pins = [
@@ -261,14 +271,17 @@ if __name__ == "__main__":
                                 firstLeftRow = firstLeftSensorArray,
                                 firstRightRow = firstRightSensorArray,
                                 secondRow = secondSensorArray,
-                                bumpers = bumpers).run,
+                                bumpers = bumpers,
+                                debug = debug,
+                                controller = lineSensorControl,
+                                max_spin = max_spin).run,
                       priority = 2,
-                      period = 100)
+                      period = 1000/pilotTaskFrequency)
     
     IMUTask = Task(IMU_Task(IMU=myIMU,
                             print_flag= not debug).run,
                    priority = 2, 
-                   period = 100)
+                   period = 1000/pilotTaskFrequency)
 
     # Task Scheduler
     task_list.append(motorControl_Task_LEFT)
