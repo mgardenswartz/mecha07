@@ -182,7 +182,7 @@ if __name__ == "__main__":
                              max_count = AutoReloadValue) 
     
     # Front Sensor Array
-    firstSensorArray = LineColorReader([pyb.Pin.cpu.A5, pyb.Pin.cpu.A6, pyb.Pin.cpu.A2, pyb.Pin.cpu.A4, pyb.Pin.cpu.B0, pyb.Pin.cpu.C1])
+    firstSensorArray = LineColorReader([pyb.Pin.cpu.A2, pyb.Pin.cpu.A6, pyb.Pin.cpu.A5, pyb.Pin.cpu.A4, pyb.Pin.cpu.B0, pyb.Pin.cpu.C1])
     # Read colors with colors=line_color_reader.read_line_color()
 
     # Secondary Sensor Array

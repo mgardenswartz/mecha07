@@ -60,7 +60,7 @@ class pilotTask:
             
             # Read sensors
             self.colorsFirst = [1 if color == "Black" else 0 for color in self.firstRow.read_line_color()]
-            self.colorsSecond = [1 if color == "Black" else 0 for color in self.secondRow.read_colors()[::1]]
+            self.colorsSecond = [1 if color == "Black" else 0 for color in self.secondRow.read_color()[::1]]
 
             print(self.firstRow)
             # First Row [2] is invalid.
@@ -77,7 +77,7 @@ class pilotTask:
             else:
                 self.state = 0
             
-            self.bumperStates = [bumper.value() for bumper in self.bumpers]
+            self.bumperStates = [not(bumper.value()) for bumper in self.bumpers]
             if any(self.bumperStates):
                 print("A bumper was pressed!")
 
