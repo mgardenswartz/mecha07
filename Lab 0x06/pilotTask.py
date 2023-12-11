@@ -10,7 +10,8 @@ class pilotTask:
                  revolutionLimit: int,
                  IMU,
                  print_flag: bool,
-                 firstRow,
+                 firstLeftRow,
+                 firstRightRow,
                  secondRow,
                  bumpers):
         
@@ -22,7 +23,8 @@ class pilotTask:
         self.encoderCPR = encoderCPR
         self.revolutionLimit = revolutionLimit
         self.IMU = IMU
-        self.firstRow = firstRow
+        self.firstLeftRow = firstLeftRow
+        self.firstRightRow = firstRightRow
         self.secondRow = secondRow
         self.bumpers = bumpers
 
@@ -65,7 +67,8 @@ class pilotTask:
             # self.colorsSecond = [1 if color == "Black" else 0 for color in self.colorsSecondRaw]
             
             print("-"*50)
-            print(self.firstRow.read_line_color())
+            print(self.firstLeftRow.read_line_color())
+            print(self.firstRightRow.read_line_color())
             print(self.secondRow.read_color()[::1])
 
             # One of the sensors is all blank.
@@ -84,8 +87,6 @@ class pilotTask:
                 print("A bumper was pressed!")
 
             yield self.state
-
-        
 
     def stop(self):
         self.motor_RPM_wanted_LEFT.put(0)

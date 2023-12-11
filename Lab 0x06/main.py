@@ -182,13 +182,18 @@ if __name__ == "__main__":
                              max_count = AutoReloadValue) 
     
     # Front Sensor Array
-    firstSensorArray = LineColorReader([pyb.Pin.cpu.A2, pyb.Pin.cpu.A6, pyb.Pin.cpu.A5, pyb.Pin.cpu.A4, pyb.Pin.cpu.B0, pyb.Pin.cpu.C1])
+    firstLeftSensorArray = sensorDriver(Pins = [pyb.Pin.cpu.A2, pyb.Pin.cpu.A6, pyb.Pin.cpu.A5],
+                                        whiteCalibration = [1500]*3,
+                                        blackCalibration = [3800]*3)
+    firstRightSensorArray = sensorDriver(Pins = [pyb.Pin.cpu.A4, pyb.Pin.cpu.B0, pyb.Pin.cpu.C1],
+                                        whiteCalibration = [1500]*3,
+                                        blackCalibration = [3800]*3)
     # Read colors with colors=line_color_reader.read_line_color()
 
     # Secondary Sensor Array
     secondSensorArray = sensorDriver(Pins=[ pyb.Pin.cpu.C4, pyb.Pin.cpu.C3, pyb.Pin.cpu.C2, pyb.Pin.cpu.B1, pyb.Pin.cpu.C5, pyb.Pin.cpu.C0 ],
                                     whiteCalibration = [2383, 2159, 697, 1550, 1691, 2048],
-                                    blackCalibration = [3898, 3677, 3215, 3485, 3483, 3815]) 
+                                    blackCalibration = [3898, 3677, 3215, 3485, 3483, 3815])
     # Read colors with colors=secondSensorArray.read_color()[::-1]
 
     # # Define GPIO pins connected to the bumper sensors
@@ -253,7 +258,8 @@ if __name__ == "__main__":
                                 revolutionLimit = revolutionLimit,
                                 IMU=myIMU,
                                 print_flag= debug,
-                                firstRow = firstSensorArray,
+                                firstLeftRow = firstLeftSensorArray,
+                                firstRightRow = firstRightSensorArray,
                                 secondRow = secondSensorArray,
                                 bumpers = bumpers).run,
                       priority = 2,
