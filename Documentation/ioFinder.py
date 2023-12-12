@@ -23,8 +23,12 @@ while True:
     try:
         myPin = input('Enter a pin to find here: ').upper()
     except KeyboardInterrupt:
-        print("\rYou have exited the program.")
+        print("\r\nYou have exited the program.")
         break
+
+    # Add P in front if the user did not.
+    if not(myPin[0] in 'pP'):
+        myPin = 'P'+myPin
 
     # IO
     CN7 = ['PC10', 'PC11', 'PC12', 'PD2', 'VDD', 'E5V', 'BOOT0', 'GND', '', '', '', 'IOREF', 'PA13', 'RESET', 'PA14', '+3.3V', 'PA15', '+5V', 'GND', 'GND', 'PB7', 'GND', 'PC13', 'VIN', 'PC14', '', 'PC15', 'PA0', 'PH0', 'PA1', 'PH1', 'PA4', 'VBAT', 'PB0', 'PC2', 'PC1', 'PC3', 'PC0']
@@ -50,6 +54,6 @@ while True:
 
     # Print the results
     if index_found_in is not None:
-        print(f"{myPin} is found at Pin {index_found_in} in {found_in_list}")
+        print(f"{myPin} is found at Pin {index_found_in} in {found_in_list}\r\n")
     else:
-        print(f"{myPin} not found in either list.")
+        print(f"{myPin} not found in either list.\r\n")
