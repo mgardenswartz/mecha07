@@ -98,6 +98,10 @@ class pilotTask:
             self.firstRightValues = self.firstRightRow.read_brightness()[::1]
             self.firstValues = self.firstLeftValues+self.firstRightValues
             self.secondValues = self.secondRow.read_brightness()[::1]
+            
+            # Reverse brightness scale
+            self.firstValues = [100-value for value in self.firstValues]
+            self.secondValues = [100-value for value in self.firstValues]
 
             # Remove Sensor 0 
             self.firstColors = self.firstColors[1:]
@@ -113,8 +117,6 @@ class pilotTask:
             # Calculate overall average
             overall_average = (first_average + second_average) / 2
             print("Overall Average Raw Value:", overall_average)
-
-            sleep_ms(500)
 
             #if overall_average > 1700:  Some values I found if both are white this around 1700 or more.
                 #self.motor_RPM_wanted_LEFT.put(0)

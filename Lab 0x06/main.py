@@ -157,7 +157,7 @@ if __name__ == "__main__":
     toggle_RIGHT = False # Changes the sign of the summing junction 
     flip_Speed_LEFT = True # Changes the speed printout's sign
     flip_Speed_RIGHT = True # Changes the speed printout's sign
-    pilotTaskFrequency = 10 # Hz
+    pilotTaskFrequency = 2 # Hz
     Kp_line = 0.6
     Ki_line = 10
     max_spin = 30 # dps
