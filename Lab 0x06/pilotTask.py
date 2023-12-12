@@ -1,11 +1,13 @@
 class pilotTask:
     def __init__(self,
                  cruiseSpeed: int,
+                 deltaSpeedforTurn: int,
                  encoder_LEFT,
                  encoder_RIGHT,
                  motor_RPM_wanted_LEFT,
                  motor_RPM_wanted_RIGHT,
                  encoderCPR: int,
+                 revolutionLimit: int,
                  IMU,
                  print_flag: bool,
                  firstLeftRow,
@@ -18,9 +20,11 @@ class pilotTask:
         
         # Attributes
         self.cruiseSpeed = cruiseSpeed
+        self.deltaSpeedforTurn = deltaSpeedforTurn
         self.encoder_LEFT = encoder_LEFT
         self.encoder_RIGHT = encoder_RIGHT
         self.encoderCPR = encoderCPR
+        self.revolutionLimit = revolutionLimit
         self.IMU = IMU
         self.firstLeftRow = firstLeftRow
         self.firstRightRow = firstRightRow
