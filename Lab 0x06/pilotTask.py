@@ -68,11 +68,11 @@ class pilotTask:
             # Read Sensors
             self.firstLeftColors = self.firstLeftRow.read_color()[::1]
             self.firstRightColors = self.firstRightRow.read_color()[::1]
-            self.firstColors = self.firstLeftColors.extend(self.firstRightColors)
+            self.firstColors = self.firstLeftColors + self.firstRightColors
             self.secondColors = self.secondRow.read_color()[::1]
             self.firstLeftValues = self.firstLeftRow.read_raw()[::1]
             self.firstRightValues = self.firstRightRow.read_raw()[::1]
-            self.firstValues = self.firstLeftValues.extend(self.firstRightValues)
+            self.firstValues = self.firstLeftValues+self.firstRightValues
             self.secondValues = self.secondRow.read_raw()[::1]
 
             # Remove Sensor 0 
@@ -82,9 +82,10 @@ class pilotTask:
             self.firstTerms = [0]*len(self.firstColors)
             self.secondTerms = [0]*len(self.secondColors)
             for i in range(len(self.firstTerms)):
-                self.firstTerms[i] = self.firstValues*(i+1+1)/len(self.firstValues) 
+                self.firstTerms[i] = self.firstValues[i] * (i + 1 + 1) / len(self.firstValues)
             for i in range(len(self.secondTerms)):
-                self.secondTerms[i] = self.secondValues*(i+1)/len(self.secondValues)
+                self.secondTerms[i] = self.secondValues[i] * (i + 1) / len(self.secondValues)
+
 
             # Error for PI controller.
             self.firstAverage = sum(self.firstTerms)
@@ -96,15 +97,14 @@ class pilotTask:
 
             # Controller
             if abs(self.spin_effort) < 10:
-                self.drive(speed = 10, # mm/s
-                           direction = "forward")
-            else: 
-                self.turn( turnSpeed = self.spin_effort, # Dps
-                          direction = "right")
+                self.drive(speed=10, direction="forward")  # mm/s
             elif self.state == 3:
                 self.stop()
             else:
-                raise ValueError(f"Invalid state: {self.state}.")
+                self.turn(turnSpeed=self.spin_effort, direction="right")  # Dps
+            # else: doesn't work
+                # raise ValueError(f"Invalid state: {self.state}.")
+
             
             # Read sensors
             # self.colorsFirstRaw = self.firstRow.read_line_color()
@@ -113,7 +113,7 @@ class pilotTask:
             # self.colorsSecond = [1 if color == "Black" else 0 for color in self.colorsSecondRaw]
             
             print("-"*50)
-            print(self.firstRow.read_line_color())
+            print(self.firstColors)
             print(self.secondRow.read_color()[::1])
 
             # One of the sensors is all blank.
