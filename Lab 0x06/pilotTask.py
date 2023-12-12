@@ -20,6 +20,7 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+from time import sleep, sleep_ms
 
 class pilotTask:
     def __init__(self,
@@ -93,13 +94,40 @@ class pilotTask:
             self.firstRightColors = self.firstRightRow.read_color()[::1]
             self.firstColors = self.firstLeftColors + self.firstRightColors
             self.secondColors = self.secondRow.read_color()[::1]
-            self.firstLeftValues = self.firstLeftRow.read_brightness()[::1]
+            self.firstLeftValues = self.firstLeftRow.read_brightness()[::-1]
             self.firstRightValues = self.firstRightRow.read_brightness()[::1]
             self.firstValues = self.firstLeftValues+self.firstRightValues
             self.secondValues = self.secondRow.read_brightness()[::1]
 
             # Remove Sensor 0 
             self.firstColors = self.firstColors[1:]
+             # Print raw values
+            
+            print("Bright Values 1 array Sensors:", self.firstValues)
+            print("Bright Values 2 array Sensors:", self.secondValues)
+
+            # Calculate average for each array
+            first_average = sum(self.firstValues) / len(self.firstValues)
+            second_average = sum(self.secondValues) / len(self.secondValues)
+
+            # Calculate overall average
+            overall_average = (first_average + second_average) / 2
+            print("Overall Average Raw Value:", overall_average)
+
+            sleep_ms(500)
+
+            #if overall_average > 1700:  Some values I found if both are white this around 1700 or more.
+                #self.motor_RPM_wanted_LEFT.put(0)
+               # self.motor_RPM_wanted_RIGHT.put(0)
+            #elif overall_average <500 is going straight
+                #self.motor_RPM_wanted_LEFT.put(60)
+               # self.motor_RPM_wanted_RIGHT.put(60)
+            #elif overall_average > 500 and overall_average < 1100 needs to turn right this is around 1086 the problem is that also applies for the left turn
+               #self.motor_RPM_wanted_LEFT.put(0)
+               # self.motor_RPM_wanted_RIGHT.put(60)
+            #elif overall_average < 500 (for sharp turns
+               #self.motor_RPM_wanted_LEFT.put(0)
+               # self.motor_RPM_wanted_RIGHT.put(60)
 
             # Line Position
             self.firstTerms = [0]*len(self.firstColors)

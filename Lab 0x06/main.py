@@ -210,11 +210,12 @@ if __name__ == "__main__":
     
     # Front Sensor Array
     firstLeftSensorArray = sensorDriver(Pins = [pyb.Pin.cpu.A5, pyb.Pin.cpu.A6, pyb.Pin.cpu.A2],
-                                        whiteCalibration = [1500]*3,
-                                        blackCalibration = [3800]*3)
+                                        whiteCalibration = [2028, 2219, 1479],     
+                                        blackCalibration = [2116, 3709, 1481])
+
     firstRightSensorArray = sensorDriver(Pins = [pyb.Pin.cpu.A4, pyb.Pin.cpu.B0, pyb.Pin.cpu.C1],
-                                        whiteCalibration = [1500]*3,
-                                        blackCalibration = [3800]*3)
+                                        whiteCalibration = [2283, 2114, 2788] ,
+                                        blackCalibration = [4095, 4095, 4095])
     # Read colors with colors=line_color_reader.read_line_color()
 
     # Secondary Sensor Array
@@ -326,5 +327,5 @@ if __name__ == "__main__":
             #vcp.write("Exiting Program.\r\n")
             motor_LEFT.set_duty(0)
             motor_RIGHT.set_duty(0)
-            break
+            #break
 
