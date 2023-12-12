@@ -24,11 +24,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class pilotTask:
     def __init__(self,
                  cruiseSpeed: int,
+                 deltaSpeedforTurn: int,
                  encoder_LEFT,
                  encoder_RIGHT,
                  motor_RPM_wanted_LEFT,
                  motor_RPM_wanted_RIGHT,
                  encoderCPR: int,
+                 revolutionLimit: int,
                  IMU,
                  print_flag: bool,
                  firstLeftRow,
@@ -41,9 +43,11 @@ class pilotTask:
         
         # Attributes
         self.cruiseSpeed = cruiseSpeed
+        self.deltaSpeedforTurn = deltaSpeedforTurn
         self.encoder_LEFT = encoder_LEFT
         self.encoder_RIGHT = encoder_RIGHT
         self.encoderCPR = encoderCPR
+        self.revolutionLimit = revolutionLimit
         self.IMU = IMU
         self.firstLeftRow = firstLeftRow
         self.firstRightRow = firstRightRow
@@ -87,11 +91,11 @@ class pilotTask:
             # Read Sensors
             self.firstLeftColors = self.firstLeftRow.read_color()[::1]
             self.firstRightColors = self.firstRightRow.read_color()[::1]
-            self.firstColors = self.firstLeftColors.extend(self.firstRightColors)
+            self.firstColors = self.firstLeftColors + self.firstRightColors
             self.secondColors = self.secondRow.read_color()[::1]
             self.firstLeftValues = self.firstLeftRow.read_raw()[::1]
             self.firstRightValues = self.firstRightRow.read_raw()[::1]
-            self.firstValues = self.firstLeftValues.extend(self.firstRightValues)
+            self.firstValues = self.firstLeftValues+self.firstRightValues
             self.secondValues = self.secondRow.read_raw()[::1]
 
             # Remove Sensor 0 
@@ -101,9 +105,10 @@ class pilotTask:
             self.firstTerms = [0]*len(self.firstColors)
             self.secondTerms = [0]*len(self.secondColors)
             for i in range(len(self.firstTerms)):
-                self.firstTerms[i] = self.firstValues*(i+1+1)/len(self.firstValues) 
+                self.firstTerms[i] = self.firstValues[i] * (i + 1 + 1) / len(self.firstValues)
             for i in range(len(self.secondTerms)):
-                self.secondTerms[i] = self.secondValues*(i+1)/len(self.secondValues)
+                self.secondTerms[i] = self.secondValues[i] * (i + 1) / len(self.secondValues)
+
 
             # Error for PI controller.
             self.firstAverage = sum(self.firstTerms)
