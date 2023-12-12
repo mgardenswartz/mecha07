@@ -5,7 +5,8 @@ of any pitch or number of channels.
 
 @author Max Gardenswartz
 @date   2023-Nov-17 MLG Approximate date of creation of file
-@date   2023-Dec-15 MLG Latest itteration.
+@date   2023-Dec-15 MLG Latest itteration. 
+            Note that recalibration does not persist between reboot.
 
 It is intended for educational use only, but its use is not limited thereto.
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
