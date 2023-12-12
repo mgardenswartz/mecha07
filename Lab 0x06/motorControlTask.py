@@ -1,3 +1,26 @@
+"""!
+@file motorControlTask.py
+This file creates a class for a task that combines a motor object,
+encoder object, and a PI controller object to control a Romi motor
+in either closed-loop or open-loop mode.
+
+@author Max Gardenswartz and Jonathan Lam
+@date   2023-Nov-17 MLG Approximate date of creation of file
+@date   2023-Dec-15 MLG Latest itteration
+
+It is intended for educational use only, but its use is not limited thereto.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+
 class motorControlTask:
     """
     @brief Class for controlling a motor with feedback from an encoder.
@@ -135,7 +158,6 @@ class motorControlTask:
                 self.motor_RPM.put( self.encoderDelta*(self.motorControl.controlFrequency*60)/self.encoderCPR) #RPM
                 if self.flip_Speed == True:
                     self.motor_RPM.put( -self.motor_RPM.get() )
-                print(f"Line 110 of the Motor Control Task states we're going {self.motor_RPM.get()} RPM.")
 
                 # State Transition Conditions
                 if self.controlMode.get() == 1:

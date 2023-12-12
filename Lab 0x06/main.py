@@ -1,3 +1,26 @@
+"""!
+@file main.py
+This file creates object for all hardware on our Romi, necessary tasks with 
+FSMs, and then runs a task scheduler in an infinite loop.
+Most tuning can be achieved here!
+
+@author Max Gardenswartz and Jonathan Lam
+@date   2023-Sep-17 MLG Approximate date of creation of file
+@date   2023-Dec-15 MLG Latest itteration for Term Project.
+
+It is intended for educational use only, but its use is not limited thereto.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+
 # Micropython Imports
 import pyb
 import micropython
@@ -97,9 +120,8 @@ if __name__ == "__main__":
     vcp = pyb.USB_VCP()
     vcp.init()
     pyb.repl_uart(None) 
-    #uart.init(115200, bits=8, parity=None, stop=1)
 
-    #  Shares
+    # Shares
     controlMode = Share('B')
     motor_duty_wanted_LEFT = Share('f')
     motor_duty_wanted_RIGHT = Share('f')
