@@ -1,7 +1,7 @@
 # Micropython Imports
 import pyb
 import micropython
-from time import sleep_ms
+from time import sleep, sleep_ms
 
 # Ridgely Libaries
 from task_share import *
@@ -135,6 +135,11 @@ if __name__ == "__main__":
     toggle_RIGHT = False # Changes the sign of the summing junction 
     flip_Speed_LEFT = True # Changes the speed printout's sign
     flip_Speed_RIGHT = True # Changes the speed printout's sign
+    pilotTaskFrequency = 10 # Hz
+    Kp_line = 0.6
+    Ki_line = 10
+    max_spin = 30 # dps
+    IMUcalibrationTime = 2 # seconds
 
     # Initializate PWM
     timerPWM = pyb.Timer(4, 
@@ -182,14 +187,25 @@ if __name__ == "__main__":
                              max_count = AutoReloadValue) 
     
     # Front Sensor Array
-    firstSensorArray = LineColorReader([pyb.Pin.cpu.A2, pyb.Pin.cpu.A6, pyb.Pin.cpu.A5, pyb.Pin.cpu.A4, pyb.Pin.cpu.B0, pyb.Pin.cpu.C1])
+    firstLeftSensorArray = sensorDriver(Pins = [pyb.Pin.cpu.A2, pyb.Pin.cpu.A6, pyb.Pin.cpu.A5],
+                                        whiteCalibration = [1500]*3,
+                                        blackCalibration = [3800]*3)
+    firstRightSensorArray = sensorDriver(Pins = [pyb.Pin.cpu.A4, pyb.Pin.cpu.B0, pyb.Pin.cpu.C1],
+                                        whiteCalibration = [1500]*3,
+                                        blackCalibration = [3800]*3)
     # Read colors with colors=line_color_reader.read_line_color()
 
     # Secondary Sensor Array
     secondSensorArray = sensorDriver(Pins=[ pyb.Pin.cpu.C4, pyb.Pin.cpu.C3, pyb.Pin.cpu.C2, pyb.Pin.cpu.B1, pyb.Pin.cpu.C5, pyb.Pin.cpu.C0 ],
                                     whiteCalibration = [2383, 2159, 697, 1550, 1691, 2048],
-                                    blackCalibration = [3898, 3677, 3215, 3485, 3483, 3815]) 
+                                    blackCalibration = [3898, 3677, 3215, 3485, 3483, 3815])
     # Read colors with colors=secondSensorArray.read_color()[::-1]
+
+    # Line Sensor PI Controller
+    lineSensorControl = closedLoopControl(controlFrequency = pilotTaskFrequency,
+                                          toggle = False,
+                                          Kp = Kp_line, 
+                                          Ki = Ki_line)
 
     # # Define GPIO pins connected to the bumper sensors
     bumper_pins = [
@@ -209,6 +225,7 @@ if __name__ == "__main__":
     Pin_I2C1_SDA = pyb.Pin(pyb.Pin.cpu.B9, mode=pyb.Pin.ALT, alt=4)
     myIMU = BNO055_Driver(bus=1, baudrate=400_000)
     myIMU.begin_calibration()
+    sleep_ms(IMUcalibrationTime*1000)
 
     # Tasks
     motorControl_Task_LEFT = Task(motorControlTask(  motor = motor_LEFT,
@@ -239,11 +256,11 @@ if __name__ == "__main__":
                                  priority = 1,
                                  period = 1000/controlFrequency)
 
-    garbageCollect_Task = Task(garbageCollectTask().run,
+    myGarbageCollectTask = Task(garbageCollectTask().run,
                               priority = 999,
                               period = 30)
 
-    pilot_Task = Task(pilotTask(cruiseSpeed = cruiseSpeed,
+    myPilotTask = Task(pilotTask(cruiseSpeed = cruiseSpeed,
                                 deltaSpeedforTurn = deltaSpeedforTurn,
                                 encoder_LEFT = encoder_LEFT,
                                 encoder_RIGHT = encoder_RIGHT,
@@ -253,23 +270,27 @@ if __name__ == "__main__":
                                 revolutionLimit = revolutionLimit,
                                 IMU=myIMU,
                                 print_flag= debug,
-                                firstRow = firstSensorArray,
+                                firstLeftRow = firstLeftSensorArray,
+                                firstRightRow = firstRightSensorArray,
                                 secondRow = secondSensorArray,
-                                bumpers = bumpers).run,
+                                bumpers = bumpers,
+                                debug = debug,
+                                controller = lineSensorControl,
+                                max_spin = max_spin).run,
                       priority = 2,
-                      period = 100)
+                      period = 1000/pilotTaskFrequency)
     
-    IMUTask = Task(IMU_Task(IMU=myIMU,
+    myIMUTask = Task(IMU_Task(IMU=myIMU,
                             print_flag= not debug).run,
                    priority = 2, 
-                   period = 100)
+                   period = 1000/pilotTaskFrequency)
 
     # Task Scheduler
     task_list.append(motorControl_Task_LEFT)
     task_list.append(motorControl_Task_RIGHT)
-    task_list.append(garbageCollect_Task)
-    task_list.append(pilot_Task)
-    task_list.append(IMUTask)
+    task_list.append(myGarbageCollectTask)
+    task_list.append(myPilotTask)
+    task_list.append(myIMUTask)
 
     # Run the scheduler
     while True:

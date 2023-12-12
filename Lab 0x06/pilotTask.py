@@ -10,9 +10,13 @@ class pilotTask:
                  revolutionLimit: int,
                  IMU,
                  print_flag: bool,
-                 firstRow,
+                 firstLeftRow,
+                 firstRightRow,
                  secondRow,
-                 bumpers):
+                 bumpers,
+                 debug: bool,
+                 controller,
+                 max_spin: float):
         
         # Attributes
         self.cruiseSpeed = cruiseSpeed
@@ -22,9 +26,13 @@ class pilotTask:
         self.encoderCPR = encoderCPR
         self.revolutionLimit = revolutionLimit
         self.IMU = IMU
-        self.firstRow = firstRow
+        self.firstLeftRow = firstLeftRow
+        self.firstRightRow = firstRightRow
         self.secondRow = secondRow
         self.bumpers = bumpers
+        self.debug = debug
+        self.controller = controller
+        self.max_spin = max_spin
 
         # Variables
         self.state = 3
@@ -40,18 +48,58 @@ class pilotTask:
 
     def run(self):    
         while True:
-            if self.state == 0:
-                # Cruise
+            # if self.state == 0:
+            #     # Cruise
+            #     self.drive(speed = 10, # mm/s
+            #                direction = "forward")
+            # elif self.state == 1:
+            #     # Turn left in place
+            #     self.turn(turnSpeed = 5, #deg/s
+            #               direction = "left")
+            # elif self.state == 2:
+            #     # Turn right in place
+            #     self.turn(turnSpeed = 10, #deg/s
+            #               direction = "right")
+            # elif self.state == 3:
+            #     self.stop()
+            # else:
+            #     raise ValueError(f"Invalid state: {self.state}.")
+            
+            # Read Sensors
+            self.firstLeftColors = self.firstLeftRow.read_color()[::1]
+            self.firstRightColors = self.firstRightRow.read_color()[::1]
+            self.firstColors = self.firstLeftColors.extend(self.firstRightColors)
+            self.secondColors = self.secondRow.read_color()[::1]
+            self.firstLeftValues = self.firstLeftRow.read_raw()[::1]
+            self.firstRightValues = self.firstRightRow.read_raw()[::1]
+            self.firstValues = self.firstLeftValues.extend(self.firstRightValues)
+            self.secondValues = self.secondRow.read_raw()[::1]
+
+            # Remove Sensor 0 
+            self.firstColors = self.firstColors[1:]
+
+            # Line Position
+            self.firstTerms = [0]*len(self.firstColors)
+            self.secondTerms = [0]*len(self.secondColors)
+            for i in range(len(self.firstTerms)):
+                self.firstTerms[i] = self.firstValues*(i+1+1)/len(self.firstValues) 
+            for i in range(len(self.secondTerms)):
+                self.secondTerms[i] = self.secondValues*(i+1)/len(self.secondValues)
+
+            # Error for PI controller.
+            self.firstAverage = sum(self.firstTerms)
+            self.secondAverage = sum(self.secondTerms)
+            self.askewness = self.firstAverage - self.secondAverage
+            self.spin_effort = self.controller.get_effort_sat(ref = 0,
+                                                         meas = self.askewness,
+                                                         satLimit = self.max_spin)   
+
+            # Controller
+            if abs(self.spin_effort) < 10:
                 self.drive(speed = 10, # mm/s
                            direction = "forward")
-                
-            elif self.state == 1:
-                # Turn left in place
-                self.turn(turnSpeed = 5, #deg/s
-                          direction = "left")
-            elif self.state == 2:
-                # Turn right in place
-                self.turn(turnSpeed = 10, #deg/s
+            else: 
+                self.turn( turnSpeed = self.spin_effort, # Dps
                           direction = "right")
             elif self.state == 3:
                 self.stop()
@@ -66,7 +114,7 @@ class pilotTask:
             
             print("-"*50)
             print(self.firstRow.read_line_color())
-            print(self.secondRow.read_raw()[::1])
+            print(self.secondRow.read_color()[::1])
 
             # One of the sensors is all blank.
             # if self.colorsFirst == [0]*6 or self.colorsSecond == [0,0,1,0,0,0]:
@@ -84,8 +132,6 @@ class pilotTask:
                 print("A bumper was pressed!")
 
             yield self.state
-
-        
 
     def stop(self):
         self.motor_RPM_wanted_LEFT.put(0)
