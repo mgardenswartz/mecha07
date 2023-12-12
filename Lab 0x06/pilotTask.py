@@ -93,10 +93,10 @@ class pilotTask:
             self.firstRightColors = self.firstRightRow.read_color()[::1]
             self.firstColors = self.firstLeftColors + self.firstRightColors
             self.secondColors = self.secondRow.read_color()[::1]
-            self.firstLeftValues = self.firstLeftRow.read_raw()[::1]
-            self.firstRightValues = self.firstRightRow.read_raw()[::1]
+            self.firstLeftValues = self.firstLeftRow.read_brightness()[::1]
+            self.firstRightValues = self.firstRightRow.read_brightness()[::1]
             self.firstValues = self.firstLeftValues+self.firstRightValues
-            self.secondValues = self.secondRow.read_raw()[::1]
+            self.secondValues = self.secondRow.read_brightness()[::1]
 
             # Remove Sensor 0 
             self.firstColors = self.firstColors[1:]
