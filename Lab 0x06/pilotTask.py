@@ -66,7 +66,7 @@ class pilotTask:
             
             print("-"*50)
             print(self.firstRow.read_line_color())
-            print(self.secondRow.read_color()[::1])
+            print(self.secondRow.read_raw()[::1])
 
             # One of the sensors is all blank.
             # if self.colorsFirst == [0]*6 or self.colorsSecond == [0,0,1,0,0,0]:
