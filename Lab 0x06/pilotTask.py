@@ -177,6 +177,9 @@ class pilotTask:
                 self.drive(speed = 50, # mm/s
                            direction = "forward")
             
+
+            # Newest PI code 
+            
             # Bumpers
             self.bumperStates = [not(bumper.value()) for bumper in self.bumpers]
             if any(self.bumperStates):
