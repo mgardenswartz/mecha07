@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-CreatSed on Tue Sep 26 16:02:53 2023
+Created on Tue Sep 26 16:02:53 2023
 
-@author: Jonathan Lam and Max Gardenswartz
+@author: Jonathan Lam
 """
 # import from python library
 from pyb import ExtInt, Pin, ADC, Timer

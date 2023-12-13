@@ -24,7 +24,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # Micropython Imports
 import pyb
 import micropython
-from time import sleep, sleep_ms
+from time import sleep
 
 # Ridgely Libaries
 from task_share import *
@@ -36,7 +36,6 @@ from encoderDriver import *
 from motorDriver import *
 from sensorDriver import *
 from BNO055_Driver import *
-from qtrsensors import QTRSensors, EMITTERS_NONE
 
 # Our Tasks
 from motorControlTask import *
@@ -47,74 +46,7 @@ from IMU_Task import *
 # Troubleshoots PuTTy! -- Thank you, Jack Miller.
 micropython.alloc_emergency_exception_buf(100)
 
-class LineColorReader:
-    def __init__(self, sensor_pins):
-        # Create QTRSensors instance with two emitter pins
-        self.qtr_sensors = QTRSensors(sensor_pins, emitterPin=pyb.Pin.cpu.A5, evenEmitterPin=pyb.Pin.cpu.A5)
-
-        # Set the dimming level (adjust as needed)
-        self.qtr_sensors.dimmingLevel = 5
-
-    def read_line_color(self):
-        # Read sensor values
-        self.qtr_sensors.read()
-
-        # Read line position for each sensor
-        output = []
-
-        for i, pin in enumerate(self.qtr_sensors.sensorPins):
-            raw_value = self.qtr_sensors.values[i]
-            
-            # Organize output for each sensor
-            #sensor_info = f"Sensor {i+1}: Raw Value: {raw_value}, Color: {'White' if raw_value < 800 else 'Black'}"
-            sensor_info = f"{'White' if raw_value < 800 else 'Black'}"
-            output.append(sensor_info)
-
-        # Print organized output horizontally
-        # print(" | ".join(output))
-        return output
-
-    def read_raw(self):
-        # Read sensor values
-        self.qtr_sensors.read()
-
-        # Read line position for each sensor
-        output = []
-
-        for i, pin in enumerate(self.qtr_sensors.sensorPins):
-            raw_value = self.qtr_sensors.values[i]
-            output.append(raw_value)
-
-        return output
-
-    def read_brightness(self):
-        self.readings = self.read_raw()
-        self.blackCalibration = [1028, 1028, 1028, 1028, 1028, 1724]
-        self.whiteCalibration = [285, 285, 285, 285, 285, 537]
-
-        # Rescale
-        self.analogRange = [0]*6
-        self.percentBrightness = [0]*6
-        for index in range(6):
-            self.analogRange[index] = self.whiteCalibration[index] - self.blackCalibration[index]
-            self.percentBrightness[index] = (self.readings[index] - self.blackCalibration[index])/self.analogRange[index]*100
-            self.percentBrightness[index] = round(self.percentBrightness[index])
-        return self.percentBrightness         
-
-    def read_color(self):
-      self.percentBrightness = self.read_brightness()
-
-      # Convert brightness to color.
-      self.colors = [""]*6
-      for index in range(6):
-         if self.percentBrightness[index] >= 50:
-            self.colors[index] = "White" 
-         else:
-            self.colors[index] = "Black" 
-
-      return self.colors
-if __name__ == "__main__":
-
+def main():
     # Disable REPL on UART2
     uart = pyb.UART(2, baudrate=115200)    
     vcp = pyb.USB_VCP()
@@ -139,7 +71,7 @@ if __name__ == "__main__":
     motor_RPM_LEFT.put(0)
     motor_RPM_RIGHT.put(0)
     
-    # Constants 
+    # Constants -- Adjust your preferences/tuning here!!!
     debug = True
     Kp_LEFT = 0.6
     Ki_LEFT = 10
@@ -157,10 +89,10 @@ if __name__ == "__main__":
     toggle_RIGHT = False # Changes the sign of the summing junction 
     flip_Speed_LEFT = True # Changes the speed printout's sign
     flip_Speed_RIGHT = True # Changes the speed printout's sign
-    pilotTaskFrequency = 2 # Hz
-    Kp_line = 0.6
+    pilotTaskFrequency = 10 # Hz
+    Kp_line = 5
     Ki_line = 10
-    max_spin = 30 # dps
+    max_spin = 50 # not really dps anymore. Saturation for effort value coming out of line-following PI controller.
     IMUcalibrationTime = 2 # seconds
 
     # Initializate PWM
@@ -209,20 +141,18 @@ if __name__ == "__main__":
                              max_count = AutoReloadValue) 
     
     # Front Sensor Array
-    firstLeftSensorArray = sensorDriver(Pins = [pyb.Pin.cpu.A5, pyb.Pin.cpu.A6, pyb.Pin.cpu.A2],
-                                        whiteCalibration = [2028, 2219, 1479],     
-                                        blackCalibration = [2116, 3709, 1481])
+    firstLeftSensorArray = sensorDriver(Pins = [pyb.Pin.cpu.A2, pyb.Pin.cpu.A6, pyb.Pin.cpu.A5],
+                                        whiteCalibration = [1490, 1917, 1943],     
+                                        blackCalibration = [1593, 3874, 2131])
 
     firstRightSensorArray = sensorDriver(Pins = [pyb.Pin.cpu.A4, pyb.Pin.cpu.B0, pyb.Pin.cpu.C1],
-                                        whiteCalibration = [2283, 2114, 2788] ,
-                                        blackCalibration = [4095, 4095, 4095])
-    # Read colors with colors=line_color_reader.read_line_color()
+                                        whiteCalibration = [2338, 2123, 2735],
+                                        blackCalibration = [4031, 4086, 4038])
 
     # Secondary Sensor Array
-    secondSensorArray = sensorDriver(Pins=[ pyb.Pin.cpu.C4, pyb.Pin.cpu.C3, pyb.Pin.cpu.C2, pyb.Pin.cpu.B1, pyb.Pin.cpu.C5, pyb.Pin.cpu.C0 ],
-                                    whiteCalibration = [2383, 2159, 697, 1550, 1691, 2048],
-                                    blackCalibration = [3898, 3677, 3215, 3485, 3483, 3815])
-    # Read colors with colors=secondSensorArray.read_color()[::-1]
+    secondSensorArray = sensorDriver(Pins=[ pyb.Pin.cpu.C4, pyb.Pin.cpu.C3, pyb.Pin.cpu.C2, pyb.Pin.cpu.B1, pyb.Pin.cpu.C0, pyb.Pin.cpu.C5 ],
+                                    whiteCalibration = [2459, 2283, 702, 1523, 1780, 2223],
+                                    blackCalibration = [3917, 3806, 3528, 3576, 3711, 3848])
 
     # Line Sensor PI Controller
     lineSensorControl = closedLoopControl(controlFrequency = pilotTaskFrequency,
@@ -232,12 +162,12 @@ if __name__ == "__main__":
 
     # # Define GPIO pins connected to the bumper sensors
     bumper_pins = [
-    pyb.Pin.cpu.C10,  # Change this to the actual pin for sensor 1
-    pyb.Pin.cpu.C11,  # Change this to the actual pin for sensor 2
-    pyb.Pin.cpu.C12,  # Change this to the actual pin for sensor 3
-    pyb.Pin.cpu.D2,  # Change this to the actual pin for sensor 4
-    pyb.Pin.cpu.C8,  # Change this to the actual pin for sensor 5
-    pyb.Pin.cpu.A15   # Change this to the actual pin for sensor 6
+    pyb.Pin.cpu.C10,  #  1
+    pyb.Pin.cpu.C11,  #  2
+    pyb.Pin.cpu.C12,  #  3
+    pyb.Pin.cpu.D2,  #  4
+    pyb.Pin.cpu.C8,  #  5
+    pyb.Pin.cpu.A15   #  6
     ]
     # Configure the bumper pins as input with pull-up resistors
     bumpers = [pyb.Pin(pin, pyb.Pin.IN, pull=pyb.Pin.PULL_UP) for pin in bumper_pins]
@@ -248,7 +178,7 @@ if __name__ == "__main__":
     Pin_I2C1_SDA = pyb.Pin(pyb.Pin.cpu.B9, mode=pyb.Pin.ALT, alt=4)
     myIMU = BNO055_Driver(bus=1, baudrate=400_000)
     myIMU.begin_calibration()
-    sleep_ms(IMUcalibrationTime*1000)
+    sleep(IMUcalibrationTime)
 
     # Tasks
     motorControl_Task_LEFT = Task(motorControlTask(  motor = motor_LEFT,
@@ -329,3 +259,6 @@ if __name__ == "__main__":
             motor_RIGHT.set_duty(0)
             #break
 
+# Run the program.
+if __name__ == "__main__":
+    main()

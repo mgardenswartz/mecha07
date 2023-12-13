@@ -89,34 +89,44 @@ class pilotTask:
             # else:
             #     raise ValueError(f"Invalid state: {self.state}.")
             
-            # Read Sensors
-            self.firstLeftColors = self.firstLeftRow.read_color()[::1]
-            self.firstRightColors = self.firstRightRow.read_color()[::1]
+            # Read Sensors (Colors)
+            self.firstLeftColors = self.firstLeftRow.read_color()
+            self.firstRightColors = self.firstRightRow.read_color()
             self.firstColors = self.firstLeftColors + self.firstRightColors
-            self.secondColors = self.secondRow.read_color()[::1]
-            self.firstLeftValues = self.firstLeftRow.read_brightness()[::-1]
-            self.firstRightValues = self.firstRightRow.read_brightness()[::1]
-            self.firstValues = self.firstLeftValues+self.firstRightValues
-            self.secondValues = self.secondRow.read_brightness()[::1]
+            self.firstColors.reverse()
+            self.secondColors = self.secondRow.read_color()
+            self.secondColors.reverse()
+
+            # Read Sensors (Brightness)
+            self.firstLeftValues = self.firstLeftRow.read_brightness()
+            self.firstRightValues = self.firstRightRow.read_brightness()
+            self.firstValues = self.firstLeftValues + self.firstRightValues
+            self.firstValues.reverse()
+            self.secondValues = self.secondRow.read_brightness()
+            self.secondValues.reverse()
+
+            # Read Sensors (Raw)
+            self.firstLeftValuesRaw = self.firstLeftRow.read_raw()
+            self.firstRightValuesRaw = self.firstRightRow.read_raw()
+            self.firstValuesRaw = self.firstLeftValuesRaw + self.firstRightValuesRaw
+            self.firstValuesRaw.reverse()
+            self.secondValuesRaw = self.secondRow.read_raw()
+            self.secondValuesRaw.reverse()
             
             # Reverse brightness scale
             self.firstValues = [100-value for value in self.firstValues]
-            self.secondValues = [100-value for value in self.firstValues]
+            self.secondValues = [100-value for value in self.secondValues]
 
-            # Remove Sensor 0 
-            self.firstColors = self.firstColors[1:]
-             # Print raw values
-            
+            # Remove Sensor 0  --- Special for our system because of broken CPU pins.
+            self.firstValues.pop()
+            self.firstColors.pop()
+
             print("Bright Values 1 array Sensors:", self.firstValues)
             print("Bright Values 2 array Sensors:", self.secondValues)
 
-            # Calculate average for each array
-            first_average = sum(self.firstValues) / len(self.firstValues)
-            second_average = sum(self.secondValues) / len(self.secondValues)
-
             # Calculate overall average
-            overall_average = (first_average + second_average) / 2
-            print("Overall Average Raw Value:", overall_average)
+            # overall_average = (first_average + second_average) / 2
+            # print("Overall Average Raw Value:", overall_average)
 
             #if overall_average > 1700:  Some values I found if both are white this around 1700 or more.
                 #self.motor_RPM_wanted_LEFT.put(0)
@@ -135,31 +145,42 @@ class pilotTask:
             self.firstTerms = [0]*len(self.firstColors)
             self.secondTerms = [0]*len(self.secondColors)
             for i in range(len(self.firstTerms)):
-                self.firstTerms[i] = self.firstValues[i] * (i + 1 + 1) / len(self.firstValues)
+                self.firstTerms[i] = self.firstValues[i] * (i + 1)
             for i in range(len(self.secondTerms)):
-                self.secondTerms[i] = self.secondValues[i] * (i + 1) / len(self.secondValues)
-
+                self.secondTerms[i] = self.secondValues[i] * (i + 1) 
 
             # Error for PI controller.
-            self.firstAverage = sum(self.firstTerms)
-            self.secondAverage = sum(self.secondTerms)
+            self.firstAverage = sum(self.firstTerms)  / len(self.firstTerms)
+            self.secondAverage = sum(self.secondTerms) / len(self.secondTerms)
             self.askewness = self.firstAverage - self.secondAverage
+
+            # PI Controller
             self.spin_effort = self.controller.get_effort_sat(ref = 0,
                                                          meas = self.askewness,
                                                          satLimit = self.max_spin)   
 
+            # Debug Printing
+            if self.debug:
+                # print(f"Position of line under the first row is {self.firstAverage}.")
+                # print(f"Position of line under the second row is {self.secondAverage}.")
+                print(f"Askewness if {self.askewness}.")
+                print(f"Spin effort is {self.spin_effort}.")
+
             # Controller
-            if abs(self.spin_effort) < 10:
-                self.drive(speed = 10, # mm/s
-                           direction = "forward")
-            else: 
-                self.turn( turnSpeed = self.spin_effort, # Dps
+            if abs(self.askewness) > 50:
+                self.turn( turnSpeed = self.spin_effort, # Dps...not really
                           direction = "right")
+            else: 
+                self.drive(speed = 50, # mm/s
+                           direction = "forward")
             
             # Bumpers
             self.bumperStates = [not(bumper.value()) for bumper in self.bumpers]
             if any(self.bumperStates):
                 print("A bumper was pressed!")
+
+
+            yield
 
     def stop(self):
         self.motor_RPM_wanted_LEFT.put(0)
@@ -182,8 +203,12 @@ class pilotTask:
         # This allows driving forward motion to turn while 
         # self.motor_RPM_wanted_LEFT.put(   self.motor_RPM_wanted_LEFT.get()+self.directionSign*self.omega_left)
         # self.motor_RPM_wanted_RIGHT.put( self.motor_RPM_wanted_RIGHT.get()-self.directionSign*self.omega_left)
-        self.motor_RPM_wanted_LEFT.put(  self.directionSign*self.omega_left)
-        self.motor_RPM_wanted_RIGHT.put( -self.directionSign*self.omega_left)
+        if self.directionSign == 1:
+            self.motor_RPM_wanted_RIGHT.put(  self.directionSign*self.omega_left)
+            self.motor_RPM_wanted_LEFT.put(0)
+        else:
+            self.motor_RPM_wanted_RIGHT.put(0)
+            self.motor_RPM_wanted_LEFT.put( -self.directionSign*self.omega_left)
 
     def drive(self,speed,direction):
         # Convert speed from mm/s to RPM
