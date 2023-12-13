@@ -167,9 +167,12 @@ class pilotTask:
                 print(f"Spin effort is {self.spin_effort}.")
 
             # Controller
-            if abs(self.askewness) > 50:
+            if self.askewness > 50:
                 self.turn( turnSpeed = self.spin_effort, # Dps...not really
                           direction = "right")
+            elif self.askewness < -50:
+                self.turn( turnSpeed = self.spin_effort, # Dps...not really
+                          direction = "left")
             else: 
                 self.drive(speed = 50, # mm/s
                            direction = "forward")
@@ -188,7 +191,7 @@ class pilotTask:
 
     def turn(self,turnSpeed,direction):
         # Convert Turn speed from dps to rad/s
-        self.turnSpeed = turnSpeed/180*3.14159 #rad/s 
+        self.turnSpeed = abs(turnSpeed/180*3.14159) #rad/s 
 
         # Determine direction.
         if direction in ["cc","CC","Counterclockwise","Left","left","L"]:
@@ -204,11 +207,11 @@ class pilotTask:
         # self.motor_RPM_wanted_LEFT.put(   self.motor_RPM_wanted_LEFT.get()+self.directionSign*self.omega_left)
         # self.motor_RPM_wanted_RIGHT.put( self.motor_RPM_wanted_RIGHT.get()-self.directionSign*self.omega_left)
         if self.directionSign == 1:
-            self.motor_RPM_wanted_RIGHT.put(  self.directionSign*self.omega_left)
+            self.motor_RPM_wanted_RIGHT.put(  -self.directionSign*self.omega_left)
             self.motor_RPM_wanted_LEFT.put(0)
         else:
             self.motor_RPM_wanted_RIGHT.put(0)
-            self.motor_RPM_wanted_LEFT.put( -self.directionSign*self.omega_left)
+            self.motor_RPM_wanted_LEFT.put( self.directionSign*self.omega_left)
 
     def drive(self,speed,direction):
         # Convert speed from mm/s to RPM
