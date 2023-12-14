@@ -172,16 +172,20 @@ class pilotTask:
             # Controller
 
 
-            if self.firstValues[1] > 50:
+            if self.firstValues[1] > 50 and self.firstValues[4] < 50: #turn to left so higher in right wheel a right wheel and then left little
                  self.turn(turnSpeed=self.spin_effort, direction="left")
-            elif self.firstValues[4] < 50:
-                self.turn(turnSpeed=self.spin_effort, direction="right")
-            elif self.secondValues[1] > 50:
+            elif self.secondValues[1] > 50 and self.secondValues[4] < 50: #second row left turn so higher speed in right wheel
                 self.turn(turnSpeed=self.spin_effort, direction="left")
-            elif self.secondValues[4] < 50:  
+            elif self.firstValues[1] < 50 and self.firstValues[4] > 50: #  first row left speed but still we need a little right
                 self.turn(turnSpeed=self.spin_effort, direction="right")
+            elif self.secondValues[1] < 50 and self.secondValues[4] > 50:  #second row right turn so higher left speed
+                self.turn(turnSpeed=self.spin_effort, direction="right") 
+            elif self.firstValues[1] > 50 and self.firstValues[4] > 50: #first row all dark  go foward
+                self.drive(speed=50, direction="forward") 
+            elif self.secondValues[1] > 50 and self.secondValues[4] > 50: #also keep going foward if second row is dark
+                self.drive(speed=50, direction="forward")   
             else:
-                self.drive(speed=50, direction="forward")
+                self.drive(speed=50, direction="forward") # only white and white and keep going foward.
 
             # Bumpers
             self.bumperStates = [not(bumper.value()) for bumper in self.bumpers]
