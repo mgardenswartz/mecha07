@@ -80,7 +80,7 @@ class pilotTask:
                      (0, 0)): 'slight_right',
 
                     ((0, 1), 
-                     (0, 1)): 'slight_right',
+                     (0, 1)): 'very_slight_right',
 
                     ((0, 1), 
                      (1, 1)): 'slight_right',
@@ -92,7 +92,7 @@ class pilotTask:
                      (0, 1)): 'sharp_right',
 
                     ((1, 0), 
-                     (1, 0)): 'slight_left',
+                     (1, 0)): 'very_slight_left',
 
                     ((1, 0), 
                      (0, 0)): 'slight_left',
@@ -152,20 +152,31 @@ class pilotTask:
                         print("Performing slight right turn.")
                     self.slight_turn(direction="right")
 
-                elif self.whatToDo == "sharp_right":
-                    if self.debug:
-                        print("Performing sharp right turn.")
-                    self.sharp_turn(direction="right")
-
                 elif self.whatToDo == "slight_left":
                     if self.debug:
                         print("Performing slight left turn.")
                     self.slight_turn(direction="left")
 
+                elif self.whatToDo == "sharp_right":
+                    if self.debug:
+                        print("Performing sharp right turn.")
+                    self.sharp_turn(direction="right")
+
                 elif self.whatToDo == "sharp_left":
                     if self.debug:
                         print("Performing sharp left turn.")
                     self.sharp_turn(direction="left")
+                
+                elif self.whatToDo == "very_slight_right":
+                    if self.debug:
+                        print("Performing slight right turn.")
+                    self.very_slight_turn(direction="right")
+
+                elif self.whatToDo == "very_slight_left":
+                    if self.debug:
+                        print("Performing slight left turn.")
+                    self.very_slight_turn(direction="left")
+
 
                 else:
                     raise Exception("Something went wrong.")
@@ -201,6 +212,15 @@ class pilotTask:
     def stop(self):
         self.motor_RPM_wanted_LEFT.put(0)
         self.motor_RPM_wanted_RIGHT.put(0)
+
+    def very_slight_turn(self,direction): 
+        # Determine direction.
+        if direction in ["cc","CC","Counterclockwise","Left","left","L"]:
+            self.motor_RPM_wanted_RIGHT.put(  25 )
+            self.motor_RPM_wanted_LEFT.put(  6.5 )
+        else: 
+            self.motor_RPM_wanted_RIGHT.put(  6.5 )
+            self.motor_RPM_wanted_LEFT.put(  25 ) 
 
     def slight_turn(self,direction): 
         # Determine direction.
