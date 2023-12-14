@@ -117,12 +117,16 @@ class pilotTask:
             self.firstValues = [100-value for value in self.firstValues]
             self.secondValues = [100-value for value in self.secondValues]
 
-            # Remove Sensor 0  --- Special for our system because of broken CPU pins.
-            self.firstValues.pop()
-            self.firstColors.pop()
+
+            # Pick Sensor one column in from the sides.
+            self.firstValues =[ self.firstValues[1], self.firstValues[4] ] 
+            self.secondValues =[ self.secondValues[1], self.secondValues[4] ] 
+            self.firstColors =[ self.firstColors[1], self.firstColors[4] ] 
+            self.secondColors =[ self.secondColors[1], self.secondColors[4] ] 
+
 
             print("Bright Values 1 array Sensors:", self.firstValues)
-            print("Bright Values 2 array Sensors:", self.secondValues)
+            print("Bright Values 2 array Sensors:", self.secondValues) #now should be only 2 array
 
             # Calculate overall average
             # overall_average = (first_average + second_average) / 2
@@ -155,38 +159,39 @@ class pilotTask:
             self.askewness = self.firstAverage - self.secondAverage
 
             # PI Controller
-            self.spin_effort = self.controller.get_effort_sat(ref = 0,
-                                                         meas = self.askewness,
-                                                         satLimit = self.max_spin)   
+            #self.spin_effort = self.controller.get_effort_sat(ref = 0,
+                                                         #meas = self.askewness,
+                                                         #satLimit = self.max_spin)   
 
             # Debug Printing
             if self.debug:
                 # print(f"Position of line under the first row is {self.firstAverage}.")
                 # print(f"Position of line under the second row is {self.secondAverage}.")
-                print(f"Askewness if {self.askewness}.")
-                print(f"Spin effort is {self.spin_effort}.")
+                #print(f"Askewness if {self.askewness}.")
+                #print(f"Spin effort is {self.spin_effort}.")
 
             # Controller
-            if self.askewness > 50:
-                self.turn( turnSpeed = self.spin_effort, # Dps...not really
-                          direction = "right")
-            elif self.askewness < -50:
-                self.turn( turnSpeed = self.spin_effort, # Dps...not really
-                          direction = "left")
-            else: 
-                self.drive(speed = 50, # mm/s
-                           direction = "forward")
-            
 
-            # Newest PI code 
-            
+
+            if self.firstValues[1] > 50:
+                 self.turn(turnSpeed=self.spin_effort, direction="left")
+            elif self.firstValues[4] < 50:
+                self.turn(turnSpeed=self.spin_effort, direction="right")
+            elif self.secondValues[1] > 50:
+                self.turn(turnSpeed=self.spin_effort, direction="left")
+            elif self.secondValues[4] < 50:  
+                self.turn(turnSpeed=self.spin_effort, direction="right")
+            else:
+                self.drive(speed=50, direction="forward")
+
+
             # Bumpers
             self.bumperStates = [not(bumper.value()) for bumper in self.bumpers]
             if any(self.bumperStates):
                 print("A bumper was pressed!")
 
-
             yield
+
 
     def stop(self):
         self.motor_RPM_wanted_LEFT.put(0)
