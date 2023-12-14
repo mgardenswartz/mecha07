@@ -154,12 +154,6 @@ def main():
                                     whiteCalibration = [2459, 2283, 702, 1523, 1780, 2223],
                                     blackCalibration = [3917, 3806, 3528, 3576, 3711, 3848])
 
-    # Line Sensor PI Controller
-    lineSensorControl = closedLoopControl(controlFrequency = pilotTaskFrequency,
-                                          toggle = False,
-                                          Kp = Kp_line, 
-                                          Ki = Ki_line)
-
     # # Define GPIO pins connected to the bumper sensors
     bumper_pins = [
     pyb.Pin.cpu.C10,  #  1
@@ -228,7 +222,6 @@ def main():
                                 secondRow = secondSensorArray,
                                 bumpers = bumpers,
                                 debug = debug,
-                                controller = lineSensorControl,
                                 max_spin = max_spin).run,
                       priority = 2,
                       period = 1000/pilotTaskFrequency)

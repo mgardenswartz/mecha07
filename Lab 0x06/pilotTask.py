@@ -39,7 +39,6 @@ class pilotTask:
                  secondRow,
                  bumpers,
                  debug: bool,
-                 controller,
                  max_spin: float):
         
         # Attributes
@@ -184,7 +183,6 @@ class pilotTask:
             else:
                 self.drive(speed=50, direction="forward")
 
-
             # Bumpers
             self.bumperStates = [not(bumper.value()) for bumper in self.bumpers]
             if any(self.bumperStates):
@@ -192,47 +190,41 @@ class pilotTask:
 
             yield
 
-
     def stop(self):
         self.motor_RPM_wanted_LEFT.put(0)
         self.motor_RPM_wanted_RIGHT.put(0)
 
-    def turn(self,turnSpeed,direction):
+    def turn(self,direction): 
+        # Determine direction.
+        if direction in ["cc","CC","Counterclockwise","Left","left","L"]:
+            self.motor_RPM_wanted_RIGHT.put(  39 )
+            self.motor_RPM_wanted_LEFT.put(  6.5 )
+
+
+    def turn_in_place(self,turnSpeed,direction):
         # Convert Turn speed from dps to rad/s
         self.turnSpeed = abs(turnSpeed/180*3.14159) #rad/s 
 
+        # Convert information to a maneuver of the wheels.
+        self.wheelSpeed  = self.turnSpeed*145/70 # rad/s
+        self.wheelSpeed *= 60/(2*3.14159)       # RPM
+
         # Determine direction.
         if direction in ["cc","CC","Counterclockwise","Left","left","L"]:
-            self.directionSign = -1
+            self.motor_RPM_wanted_RIGHT.put(  self.wheelSpeed )
+            self.motor_RPM_wanted_LEFT.put(  -self.wheelSpeed )
         else:
-            self.directionSign = 1
-        
-        # Convert information to a maneuver of the wheels.
-        self.omega_left = self.turnSpeed*145/70 # rad/s
-        self.omega_left *= 60/(2*3.14159)       # RPM
-
-        # This allows driving forward motion to turn while 
-        # self.motor_RPM_wanted_LEFT.put(   self.motor_RPM_wanted_LEFT.get()+self.directionSign*self.omega_left)
-        # self.motor_RPM_wanted_RIGHT.put( self.motor_RPM_wanted_RIGHT.get()-self.directionSign*self.omega_left)
-        if self.directionSign == 1:
-            self.motor_RPM_wanted_RIGHT.put(  -self.directionSign*self.omega_left)
-            self.motor_RPM_wanted_LEFT.put(0)
-        else:
-            self.motor_RPM_wanted_RIGHT.put(0)
-            self.motor_RPM_wanted_LEFT.put( self.directionSign*self.omega_left)
+            self.motor_RPM_wanted_RIGHT.put(  -self.wheelSpeed )
+            self.motor_RPM_wanted_LEFT.put(   self.wheelSpeed )
 
     def drive(self,speed,direction):
         # Convert speed from mm/s to RPM
-        self.speed = speed/35*60/(2*3.14159)  # RPM
+        self.speed = abs(speed/35*60/(2*3.14159))  # RPM
 
         # Determine direction.
         if direction in ["Reverse","Backward","R","r","reverse","backward"]:
-            self.directionSign = -1
+            self.motor_RPM_wanted_LEFT.put(  -self.speed)
+            self.motor_RPM_wanted_RIGHT.put( -self.speed)
         else:
-            self.directionSign = 1
-
-        # Set speed
-        # self.motor_RPM_wanted_LEFT.put(   self.motor_RPM_wanted_LEFT.get()+self.directionSign*self.speed)
-        # self.motor_RPM_wanted_RIGHT.put( self.motor_RPM_wanted_RIGHT.get()+self.directionSign*self.speed)
-        self.motor_RPM_wanted_LEFT.put(   self.directionSign*self.speed)
-        self.motor_RPM_wanted_RIGHT.put( self.directionSign*self.speed)
+            self.motor_RPM_wanted_LEFT.put(  self.speed)
+            self.motor_RPM_wanted_RIGHT.put( self.speed)
