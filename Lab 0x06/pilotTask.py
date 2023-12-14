@@ -205,11 +205,11 @@ class pilotTask:
     def slight_turn(self,direction): 
         # Determine direction.
         if direction in ["cc","CC","Counterclockwise","Left","left","L"]:
-            self.motor_RPM_wanted_RIGHT.put(  39 )
+            self.motor_RPM_wanted_RIGHT.put(  45 )
             self.motor_RPM_wanted_LEFT.put(  6.5 )
         else: 
             self.motor_RPM_wanted_RIGHT.put(  6.5 )
-            self.motor_RPM_wanted_LEFT.put(  39 )
+            self.motor_RPM_wanted_LEFT.put(  45 )
 
     def sharp_turn(self,direction):
         # Determine direction.
