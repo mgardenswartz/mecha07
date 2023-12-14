@@ -2,7 +2,8 @@
 Mecha07's code for the ME 405 class in Fall Quarter 2023.
 Belongs to Jonathan Lam and Max Gardenswartz
 
-See the Wiki for more detailed information about the latest, least piecemeal code in Lab 0x06.
+See the Wiki for more detailed information about the latest, most complete code: Lab 0x06.
+No other labs will be documented.
 
 # Lab 0x00: MCU reads an RC circuit
 # Lab 0x01: Motor Driver
