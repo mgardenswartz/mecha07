@@ -122,9 +122,9 @@ class pilotTask:
 
                 # Pick Sensors.
                 self.firstValues =[ self.firstValues[1], self.firstValues[4] ] 
-                self.secondValues =[ self.secondValues[1], self.secondValues[4] ] 
+                self.secondValues =[ self.secondValues[0], self.secondValues[5] ] 
                 self.firstColors =[ self.firstColors[1], self.firstColors[4] ] 
-                self.secondColors =[ self.secondColors[1], self.secondColors[4] ] 
+                self.secondColors =[ self.secondColors[0], self.secondColors[5] ] 
 
                 # Control Logic
 
@@ -145,7 +145,7 @@ class pilotTask:
                 if self.whatToDo == "straight":
                     if self.debug:
                         print("Performing straight maneuver.")
-                    self.drive(speed=80, direction="Forward")
+                    self.drive(speed=100, direction="Forward")
 
                 elif self.whatToDo == "slight_right":
                     if self.debug:
@@ -169,12 +169,12 @@ class pilotTask:
                 
                 elif self.whatToDo == "very_slight_right":
                     if self.debug:
-                        print("Performing very slight right turn.")
+                        print("Performing slight right turn.")
                     self.very_slight_turn(direction="right")
 
                 elif self.whatToDo == "very_slight_left":
                     if self.debug:
-                        print("Performing very slight left turn.")
+                        print("Performing slight left turn.")
                     self.very_slight_turn(direction="left")
 
 
@@ -216,29 +216,29 @@ class pilotTask:
     def very_slight_turn(self,direction): 
         # Determine direction.
         if direction in ["cc","CC","Counterclockwise","Left","left","L"]:
-            self.motor_RPM_wanted_RIGHT.put(  25 )
-            self.motor_RPM_wanted_LEFT.put(  6.5 )
+            self.motor_RPM_wanted_RIGHT.put(  10 )
+            self.motor_RPM_wanted_LEFT.put(  5 )
         else: 
-            self.motor_RPM_wanted_RIGHT.put(  6.5 )
-            self.motor_RPM_wanted_LEFT.put(  25 ) 
+            self.motor_RPM_wanted_RIGHT.put(  5 )
+            self.motor_RPM_wanted_LEFT.put(  10 ) 
 
     def slight_turn(self,direction): 
         # Determine direction.
         if direction in ["cc","CC","Counterclockwise","Left","left","L"]:
-            self.motor_RPM_wanted_RIGHT.put(  45 )
-            self.motor_RPM_wanted_LEFT.put(  6.5 )
+            self.motor_RPM_wanted_RIGHT.put(  30 )
+            self.motor_RPM_wanted_LEFT.put(  0 )
         else: 
-            self.motor_RPM_wanted_RIGHT.put(  6.5 )
-            self.motor_RPM_wanted_LEFT.put(  45 )
+            self.motor_RPM_wanted_RIGHT.put(  0 )
+            self.motor_RPM_wanted_LEFT.put(  30 )
 
     def sharp_turn(self,direction):
         # Determine direction.
         if direction in ["cc","CC","Counterclockwise","Left","left","L"]:
-            self.motor_RPM_wanted_RIGHT.put(  60 )
+            self.motor_RPM_wanted_RIGHT.put(  40 )
             self.motor_RPM_wanted_LEFT.put(  6 )
         else:
             self.motor_RPM_wanted_RIGHT.put(  6 )
-            self.motor_RPM_wanted_LEFT.put(  60 )
+            self.motor_RPM_wanted_LEFT.put(  40 )
 
     def turn_in_place(self,turnSpeed,direction):
         # Convert Turn speed from dps to rad/s
