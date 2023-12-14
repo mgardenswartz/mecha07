@@ -226,19 +226,19 @@ class pilotTask:
         # Determine direction.
         if direction in ["cc","CC","Counterclockwise","Left","left","L"]:
             self.motor_RPM_wanted_RIGHT.put(  30 )
-            self.motor_RPM_wanted_LEFT.put(  0 )
+            self.motor_RPM_wanted_LEFT.put(  5 )
         else: 
-            self.motor_RPM_wanted_RIGHT.put(  0 )
+            self.motor_RPM_wanted_RIGHT.put(  5 )
             self.motor_RPM_wanted_LEFT.put(  30 )
 
     def sharp_turn(self,direction):
         # Determine direction.
         if direction in ["cc","CC","Counterclockwise","Left","left","L"]:
-            self.motor_RPM_wanted_RIGHT.put(  40 )
-            self.motor_RPM_wanted_LEFT.put(  6 )
+            self.motor_RPM_wanted_RIGHT.put(  50 )
+            self.motor_RPM_wanted_LEFT.put(  0 )
         else:
-            self.motor_RPM_wanted_RIGHT.put(  6 )
-            self.motor_RPM_wanted_LEFT.put(  40 )
+            self.motor_RPM_wanted_RIGHT.put(  0 )
+            self.motor_RPM_wanted_LEFT.put(  50 )
 
     def turn_in_place(self,turnSpeed,direction):
         # Convert Turn speed from dps to rad/s
