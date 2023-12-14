@@ -169,12 +169,12 @@ class pilotTask:
                 
                 elif self.whatToDo == "very_slight_right":
                     if self.debug:
-                        print("Performing slight right turn.")
+                        print("Performing very slight right turn.")
                     self.very_slight_turn(direction="right")
 
                 elif self.whatToDo == "very_slight_left":
                     if self.debug:
-                        print("Performing slight left turn.")
+                        print("Performing very slight left turn.")
                     self.very_slight_turn(direction="left")
 
 
