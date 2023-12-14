@@ -207,8 +207,7 @@ def main():
                               priority = 999,
                               period = 30)
 
-    myPilotTask = Task(pilotTask(cruiseSpeed = cruiseSpeed,
-                                deltaSpeedforTurn = deltaSpeedforTurn,
+    myPilotTask = Task(pilotTask(
                                 encoder_LEFT = encoder_LEFT,
                                 encoder_RIGHT = encoder_RIGHT,
                                 motor_RPM_wanted_LEFT=motor_RPM_wanted_LEFT,
@@ -216,13 +215,11 @@ def main():
                                 encoderCPR=encoderCPR,
                                 revolutionLimit = revolutionLimit,
                                 IMU=myIMU,
-                                print_flag= debug,
                                 firstLeftRow = firstLeftSensorArray,
                                 firstRightRow = firstRightSensorArray,
                                 secondRow = secondSensorArray,
                                 bumpers = bumpers,
-                                debug = debug,
-                                max_spin = max_spin).run,
+                                debug = debug).run,
                       priority = 2,
                       period = 1000/pilotTaskFrequency)
     

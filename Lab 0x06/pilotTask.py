@@ -20,12 +20,9 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-from time import sleep, sleep_ms
 
 class pilotTask:
     def __init__(self,
-                 cruiseSpeed: int,
-                 deltaSpeedforTurn: int,
                  encoder_LEFT,
                  encoder_RIGHT,
                  motor_RPM_wanted_LEFT,
@@ -33,17 +30,13 @@ class pilotTask:
                  encoderCPR: int,
                  revolutionLimit: int,
                  IMU,
-                 print_flag: bool,
                  firstLeftRow,
                  firstRightRow,
                  secondRow,
                  bumpers,
-                 debug: bool,
-                 max_spin: float):
+                 debug: bool):
         
         # Attributes
-        self.cruiseSpeed = cruiseSpeed
-        self.deltaSpeedforTurn = deltaSpeedforTurn
         self.encoder_LEFT = encoder_LEFT
         self.encoder_RIGHT = encoder_RIGHT
         self.encoderCPR = encoderCPR
@@ -54,156 +47,178 @@ class pilotTask:
         self.secondRow = secondRow
         self.bumpers = bumpers
         self.debug = debug
-        self.controller = controller
-        self.max_spin = max_spin
 
         # Variables
-        self.state = 3
-        self.counter = 0
-        self.print_flag = print_flag
-        self.max_turn_speed = 60
-        self.one_time = True
+        self.state = 0
 
         # Share
         self.motor_RPM_wanted_LEFT = motor_RPM_wanted_LEFT
         self.motor_RPM_wanted_RIGHT = motor_RPM_wanted_RIGHT
         self.stop()
 
+        # Create a dictionary to map colors to values
+        self.color_mapping = {"White": 0, "Black": 1}
+
+        # Dictionary for possible manuevers.
+        self.manuevers = {
+                    ((0, 0), 
+                     (0, 0)): 'straight',
+
+                    ((1, 1), 
+                     (1, 1)): 'straight',
+
+                    ((0, 0), 
+                     (1, 1)): 'straight',
+
+                    ((1, 1), 
+                     (0, 0)): 'straight',
+
+                    ((1, 1), 
+                     (0, 1)): 'slight_right',
+
+                    ((0, 1), 
+                     (0, 0)): 'slight_right',
+
+                    ((0, 1), 
+                     (0, 1)): 'slight_right',
+
+                    ((0, 1), 
+                     (1, 1)): 'slight_right',
+
+                    ((0, 1), 
+                     (1, 0)): 'sharp_right',
+
+                    ((0, 0), 
+                     (0, 1)): 'sharp_right',
+
+                    ((1, 0), 
+                     (1, 0)): 'slight_left',
+
+                    ((1, 0), 
+                     (0, 0)): 'slight_left',
+
+                    ((1, 1), 
+                     (1, 0)): 'slight_left',
+
+                    ((1, 0), 
+                     (1, 1)): 'slight_left',
+
+                    ((1, 0), 
+                     (0, 1)): 'sharp_left',
+
+                    ((0, 0), 
+                     (1, 0)): 'sharp_left'
+                    }
+
     def run(self):    
         while True:
-            # if self.state == 0:
-            #     # Cruise
-            #     self.drive(speed = 10, # mm/s
-            #                direction = "forward")
-            # elif self.state == 1:
-            #     # Turn left in place
-            #     self.turn(turnSpeed = 5, #deg/s
-            #               direction = "left")
-            # elif self.state == 2:
-            #     # Turn right in place
-            #     self.turn(turnSpeed = 10, #deg/s
-            #               direction = "right")
-            # elif self.state == 3:
-            #     self.stop()
-            # else:
-            #     raise ValueError(f"Invalid state: {self.state}.")
-            
-            # Read Sensors (Colors)
-            self.firstLeftColors = self.firstLeftRow.read_color()
-            self.firstRightColors = self.firstRightRow.read_color()
-            self.firstColors = self.firstLeftColors + self.firstRightColors
-            self.firstColors.reverse()
-            self.secondColors = self.secondRow.read_color()
-            self.secondColors.reverse()
+            if self.state == 0:
+                # Read sensors
+                self.read_sensors()
+                
+                # Reverse brightness scale so that 100 is black and 0 is white. 
+                self.firstValues = [100-value for value in self.firstValues]
+                self.secondValues = [100-value for value in self.secondValues]
 
-            # Read Sensors (Brightness)
-            self.firstLeftValues = self.firstLeftRow.read_brightness()
-            self.firstRightValues = self.firstRightRow.read_brightness()
-            self.firstValues = self.firstLeftValues + self.firstRightValues
-            self.firstValues.reverse()
-            self.secondValues = self.secondRow.read_brightness()
-            self.secondValues.reverse()
+                # Pick Sensors.
+                self.firstValues =[ self.firstValues[1], self.firstValues[4] ] 
+                self.secondValues =[ self.secondValues[1], self.secondValues[4] ] 
+                self.firstColors =[ self.firstColors[1], self.firstColors[4] ] 
+                self.secondColors =[ self.secondColors[1], self.secondColors[4] ] 
 
-            # Read Sensors (Raw)
-            self.firstLeftValuesRaw = self.firstLeftRow.read_raw()
-            self.firstRightValuesRaw = self.firstRightRow.read_raw()
-            self.firstValuesRaw = self.firstLeftValuesRaw + self.firstRightValuesRaw
-            self.firstValuesRaw.reverse()
-            self.secondValuesRaw = self.secondRow.read_raw()
-            self.secondValuesRaw.reverse()
-            
-            # Reverse brightness scale
-            self.firstValues = [100-value for value in self.firstValues]
-            self.secondValues = [100-value for value in self.secondValues]
+                # Control Logic
 
+                # Replace colors with values and convert to tuple
+                self.firstColorsTuple = tuple(self.color_mapping[color] for color in self.firstColors)
+                self.secondColorsTuple= tuple(self.color_mapping[color] for color in self.secondColors)
+                self.colorsTuple = (self.firstColorsTuple, self.secondColorsTuple)
+                
+                # Printing for debugging.
+                if self.debug:
+                    print(f"Bright Values 1 array Sensors {self.firstValues}.")
+                    print(f"Bright Values 2 array Sensors: {self.secondValues}.")
+                    #print(f"Tuple reads: {self.colorsTuple}")
+                
+                # What should the robot do?
+                self.whatToDo = self.manuevers[self.colorsTuple]
 
-            # Pick Sensor one column in from the sides.
-            self.firstValues =[ self.firstValues[1], self.firstValues[4] ] 
-            self.secondValues =[ self.secondValues[1], self.secondValues[4] ] 
-            self.firstColors =[ self.firstColors[1], self.firstColors[4] ] 
-            self.secondColors =[ self.secondColors[1], self.secondColors[4] ] 
+                if self.whatToDo == "straight":
+                    if self.debug:
+                        print("Performing straight maneuver.")
+                    self.drive(speed=39, direction="Forward")
 
+                elif self.whatToDo == "slight_right":
+                    if self.debug:
+                        print("Performing slight right turn.")
+                    self.slight_turn(direction="right")
 
-            print("Bright Values 1 array Sensors:", self.firstValues)
-            print("Bright Values 2 array Sensors:", self.secondValues) #now should be only 2 array
+                elif self.whatToDo == "sharp_right":
+                    if self.debug:
+                        print("Performing sharp right turn.")
+                    self.sharp_turn(direction="right")
 
-            # Calculate overall average
-            # overall_average = (first_average + second_average) / 2
-            # print("Overall Average Raw Value:", overall_average)
+                elif self.whatToDo == "slight_left":
+                    if self.debug:
+                        print("Performing slight left turn.")
+                    self.slight_turn(direction="left")
 
-            #if overall_average > 1700:  Some values I found if both are white this around 1700 or more.
-                #self.motor_RPM_wanted_LEFT.put(0)
-               # self.motor_RPM_wanted_RIGHT.put(0)
-            #elif overall_average <500 is going straight
-                #self.motor_RPM_wanted_LEFT.put(60)
-               # self.motor_RPM_wanted_RIGHT.put(60)
-            #elif overall_average > 500 and overall_average < 1100 needs to turn right this is around 1086 the problem is that also applies for the left turn
-               #self.motor_RPM_wanted_LEFT.put(0)
-               # self.motor_RPM_wanted_RIGHT.put(60)
-            #elif overall_average < 500 (for sharp turns
-               #self.motor_RPM_wanted_LEFT.put(0)
-               # self.motor_RPM_wanted_RIGHT.put(60)
+                elif self.whatToDo == "sharp_left":
+                    if self.debug:
+                        print("Performing sharp left turn.")
+                    self.sharp_turn(direction="left")
 
-            # Line Position
-            self.firstTerms = [0]*len(self.firstColors)
-            self.secondTerms = [0]*len(self.secondColors)
-            for i in range(len(self.firstTerms)):
-                self.firstTerms[i] = self.firstValues[i] * (i + 1)
-            for i in range(len(self.secondTerms)):
-                self.secondTerms[i] = self.secondValues[i] * (i + 1) 
+                else:
+                    raise Exception("Something went wrong.")
 
-            # Error for PI controller.
-            self.firstAverage = sum(self.firstTerms)  / len(self.firstTerms)
-            self.secondAverage = sum(self.secondTerms) / len(self.secondTerms)
-            self.askewness = self.firstAverage - self.secondAverage
+                # if self.firstValues[1] > 50 and self.firstValues[4] < 50: #turn to left so higher in right wheel a right wheel and then left little
+                #      self.turn(turnSpeed=self.spinSpeed, direction="left")
+                # elif self.secondValues[1] > 50 and self.secondValues[4] < 50: #second row left turn so higher speed in right wheel
+                #     self.turn(turnSpeed=self.spinSpeed, direction="left")
+                # elif self.firstValues[1] < 50 and self.firstValues[4] > 50: #  first row left speed but still we need a little right
+                #     self.turn(turnSpeed=self.spinSpeed, direction="right")
+                # elif self.secondValues[1] < 50 and self.secondValues[4] > 50:  #second row right turn so higher left speed
+                #     self.turn(turnSpeed=self.spinSpeed, direction="right") 
+                # elif self.firstValues[1] > 50 and self.firstValues[4] > 50: #first row all dark  go foward
+                #     self.drive(speed=50, direction="forward") 
+                # elif self.secondValues[1] > 50 and self.secondValues[4] > 50: #also keep going foward if second row is dark
+                #     self.drive(speed=50, direction="forward")   
+                # else:
+                #     self.drive(speed=50, direction="forward") # only white and white and keep going foward.
 
-            # PI Controller
-            #self.spin_effort = self.controller.get_effort_sat(ref = 0,
-                                                         #meas = self.askewness,
-                                                         #satLimit = self.max_spin)   
+                # Bumpers
+                self.bumperStates = [not(bumper.value()) for bumper in self.bumpers]
+                if any(self.bumperStates):
+                    print("A bumper was pressed!")
+                    self.state = 1
 
-            # Debug Printing
-            if self.debug:
-                # print(f"Position of line under the first row is {self.firstAverage}.")
-                # print(f"Position of line under the second row is {self.secondAverage}.")
-                #print(f"Askewness if {self.askewness}.")
-                #print(f"Spin effort is {self.spin_effort}.")
-
-            # Controller
-
-
-            if self.firstValues[1] > 50 and self.firstValues[4] < 50: #turn to left so higher in right wheel a right wheel and then left little
-                 self.turn(turnSpeed=self.spin_effort, direction="left")
-            elif self.secondValues[1] > 50 and self.secondValues[4] < 50: #second row left turn so higher speed in right wheel
-                self.turn(turnSpeed=self.spin_effort, direction="left")
-            elif self.firstValues[1] < 50 and self.firstValues[4] > 50: #  first row left speed but still we need a little right
-                self.turn(turnSpeed=self.spin_effort, direction="right")
-            elif self.secondValues[1] < 50 and self.secondValues[4] > 50:  #second row right turn so higher left speed
-                self.turn(turnSpeed=self.spin_effort, direction="right") 
-            elif self.firstValues[1] > 50 and self.firstValues[4] > 50: #first row all dark  go foward
-                self.drive(speed=50, direction="forward") 
-            elif self.secondValues[1] > 50 and self.secondValues[4] > 50: #also keep going foward if second row is dark
-                self.drive(speed=50, direction="forward")   
+            elif self.state == 1:
+                self.stop()
             else:
-                self.drive(speed=50, direction="forward") # only white and white and keep going foward.
-
-            # Bumpers
-            self.bumperStates = [not(bumper.value()) for bumper in self.bumpers]
-            if any(self.bumperStates):
-                print("A bumper was pressed!")
-
-            yield
+                raise ValueError(f"Invalid state: {self.state}.")
+            
+            yield self.state
 
     def stop(self):
         self.motor_RPM_wanted_LEFT.put(0)
         self.motor_RPM_wanted_RIGHT.put(0)
 
-    def turn(self,direction): 
+    def slight_turn(self,direction): 
         # Determine direction.
         if direction in ["cc","CC","Counterclockwise","Left","left","L"]:
             self.motor_RPM_wanted_RIGHT.put(  39 )
             self.motor_RPM_wanted_LEFT.put(  6.5 )
+        else: 
+            self.motor_RPM_wanted_RIGHT.put(  6.5 )
+            self.motor_RPM_wanted_LEFT.put(  39 )
 
+    def sharp_turn(self,direction):
+        # Determine direction.
+        if direction in ["cc","CC","Counterclockwise","Left","left","L"]:
+            self.motor_RPM_wanted_RIGHT.put(  60 )
+            self.motor_RPM_wanted_LEFT.put(  6 )
+        else:
+            self.motor_RPM_wanted_RIGHT.put(  6 )
+            self.motor_RPM_wanted_LEFT.put(  60 )
 
     def turn_in_place(self,turnSpeed,direction):
         # Convert Turn speed from dps to rad/s
@@ -232,3 +247,28 @@ class pilotTask:
         else:
             self.motor_RPM_wanted_LEFT.put(  self.speed)
             self.motor_RPM_wanted_RIGHT.put( self.speed)
+
+    def read_sensors(self):
+        # Read Sensors (Colors)
+        self.firstLeftColors = self.firstLeftRow.read_color()
+        self.firstRightColors = self.firstRightRow.read_color()
+        self.firstColors = self.firstLeftColors + self.firstRightColors
+        self.firstColors.reverse()
+        self.secondColors = self.secondRow.read_color()
+        self.secondColors.reverse()
+
+        # Read Sensors (Brightness)
+        self.firstLeftValues = self.firstLeftRow.read_brightness()
+        self.firstRightValues = self.firstRightRow.read_brightness()
+        self.firstValues = self.firstLeftValues + self.firstRightValues
+        self.firstValues.reverse()
+        self.secondValues = self.secondRow.read_brightness()
+        self.secondValues.reverse()
+
+        # Read Sensors (Raw)
+        self.firstLeftValuesRaw = self.firstLeftRow.read_raw()
+        self.firstRightValuesRaw = self.firstRightRow.read_raw()
+        self.firstValuesRaw = self.firstLeftValuesRaw + self.firstRightValuesRaw
+        self.firstValuesRaw.reverse()
+        self.secondValuesRaw = self.secondRow.read_raw()
+        self.secondValuesRaw.reverse()
