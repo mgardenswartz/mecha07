@@ -515,11 +515,17 @@ class pilotTask:
                     self.state = 22
             
             elif self.state == 22:
-                if abs(self.encLeftTicks) >= 6500:
-                    self.stop()
+                self.encoder_LEFT.update()
+                self.encoder_RIGHT.update()
+                self.encLeftTicks = self.encoder_LEFT.get_position()
+                print(f"The ENCODER value {abs(self.encLeftTicks)}.")
 
-                
-    
+                if abs(self.encLeftTicks) >= 5000:
+                    self.stop()
+                    
+
+
+   
             else:
               raise ValueError(f"Invalid state: {self.state}.")
             
