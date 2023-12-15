@@ -21,7 +21,7 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-from multiprocessing.resource_sharer import DupSocket
+#from multiprocessing.resource_sharer import DupSocket
 
 
 class pilotTask:
@@ -218,8 +218,11 @@ class pilotTask:
                 self.encoder_LEFT.update()
                 self.encoder_RIGHT.update()
                 self.encLeftTicks = self.encoder_LEFT.get_position()
+                print("Is at the encoder position")
+                print("The ticks are", str(self.encLeftTicks))
                 self.encRightTicks = self.encoder_RIGHT.get_position()
-                if abs(self.encLeftTicks) == self.encoderCPR*1:
+                if abs(self.encLeftTicks) == self.encoderCPR*0.5:
+                    print("Going Next state")
                     self.state = 3
             
             elif self.state == 3: #stop
