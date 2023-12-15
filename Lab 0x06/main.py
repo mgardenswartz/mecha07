@@ -77,8 +77,6 @@ def main():
     Ki_LEFT = 10
     Kp_RIGHT = 0.6
     Ki_RIGHT = 10
-    cruiseSpeed = 60 # RPM
-    deltaSpeedforTurn = 60 # RPM
     revolutionLimit = 3 # rev
     controlFrequency = 100 # Hz 
     PWMfrequency = 20_000 # Hz 
@@ -90,9 +88,6 @@ def main():
     flip_Speed_LEFT = True # Changes the speed printout's sign
     flip_Speed_RIGHT = True # Changes the speed printout's sign
     pilotTaskFrequency = 10 # Hz
-    Kp_line = 5
-    Ki_line = 10
-    max_spin = 50 # not really dps anymore. Saturation for effort value coming out of line-following PI controller.
     IMUcalibrationTime = 2 # seconds
 
     # Initializate PWM
