@@ -402,72 +402,122 @@ class pilotTask:
                  self.encoder_LEFT.zero()
                  self.state = 18
             
-            elif self.state == 18: # acitvate sensors to stop at the finish line
-            #     # Read sensors
-                 self.read_sensors()
+            elif self.state == 18:  # activate sensors to stop at the finish line
+                # Read sensors
+                self.read_sensors()
+                self.encoder_LEFT.update()
+                self.encoder_RIGHT.update()
+                self.encLeftTicks = self.encoder_LEFT.get_position()
+                print(f"The ENCODER value {abs(self.encLeftTicks)}.")
+
+                # Reverse brightness scale so that 100 is black and 0 is white.
+                self.firstValues = [100 - value for value in self.firstValues]
+                self.secondValues = [100 - value for value in self.secondValues]
+
+                # Pick Sensors.
+                self.firstValues = [self.firstValues[1], self.firstValues[4]]
+                self.secondValues = [self.secondValues[0], self.secondValues[5]]
+                self.firstColors = [self.firstColors[1], self.firstColors[4]]
+                self.secondColors = [self.secondColors[0], self.secondColors[5]]
+
+                # Control Logic
+
+                # Replace colors with values and convert to tuple
+                self.firstColorsTuple = tuple(self.color_mapping[color] for color in self.firstColors)
+                self.secondColorsTuple = tuple(self.color_mapping[color] for color in self.secondColors)
+                self.colorsTuple = (self.firstColorsTuple, self.secondColorsTuple)
+
+                # Printing for debugging.
+                # if self.debug:
+                #     print(f"Bright Values 1 array Sensors {self.firstValues}.")
+                #     print(f"Bright Values 2 array Sensors: {self.secondValues}.")
+                #     print(f"Tuple reads: {self.colorsTuple}")
+
+                # What should the robot do?
+                self.whatToDo = self.manuevers[self.colorsTuple]
+
+                if abs(self.encLeftTicks) >= 6500:
+                    self.stop()
+                    self.encoder_RIGHT.zero()
+                    self.encoder_LEFT.zero()
+                    self.state = 19
+
+                elif self.whatToDo == "straight":
+                    if self.debug:
+                        print("Performing straight maneuver.")
+                    self.drive(speed=100, direction="Forward")
+
+                elif self.whatToDo == "slight_right":
+                    if self.debug:
+                        print("Performing slight right turn.")
+                    self.slight_turn(direction="right")
+
+                elif self.whatToDo == "slight_left":
+                    if self.debug:
+                        print("Performing slight left turn.")
+                    self.slight_turn(direction="left")
+
+                elif self.whatToDo == "sharp_right":
+                    if self.debug:
+                        print("Performing sharp right turn.")
+                    self.sharp_turn(direction="right")
+
+                elif self.whatToDo == "sharp_left":
+                    if self.debug:
+                        print("Performing sharp left turn.")
+                    self.sharp_turn(direction="left")
+
+                elif self.whatToDo == "very_slight_right":
+                    if self.debug:
+                        print("Performing slight right turn.")
+                    self.very_slight_turn(direction="right")
+
+                elif self.whatToDo == "very_slight_left":
+                    if self.debug:
+                        print("Performing slight left turn.")
+                    self.very_slight_turn(direction="left")
+
+                else:
+                    raise ValueError(f"Invalid state: {self.state}.")
+
+
+            elif self.state == 19: # stop
+                self.stop()
+                self.encoder_RIGHT.zero()
+                self.encoder_LEFT.zero()
+                self.state = 20
+            
+            elif self.state == 20: # turn left
+                self.turn_in_place(direction="left", turnSpeed=20)  # deg/s
                 
-            #     # Reverse brightness scale so that 100 is black and 0 is white. 
-                 self.firstValues = [100-value for value in self.firstValues]
-                 self.secondValues = [100-value for value in self.secondValues]
+                # Read the latest data from the encoders.
+                self.encoder_LEFT.update()
+                self.encoder_RIGHT.update()
+                self.encLeftTicks = self.encoder_LEFT.get_position()
+                self.encRightTicks = self.encoder_RIGHT.get_position()
 
-                 # Pick Sensors.
-                 self.firstValues =[ self.firstValues[1], self.firstValues[4] ] 
-                 self.secondValues =[ self.secondValues[0], self.secondValues[5] ] 
-                 self.firstColors =[ self.firstColors[1], self.firstColors[4] ] 
-                 self.secondColors =[ self.secondColors[0], self.secondColors[5] ] 
+                # Compute degrees turned
+                self.revsTurned = 70 / (2 * 145) * (self.encLeftTicks - self.encRightTicks) / self.encoderCPR  # rev from ticks
 
-            #     # Control Logic
+                if abs(self.revsTurned) >= 0.5:
+                    self.state = 21
+            
+            elif self.state == 21:
+                self.drive(direction="forward", speed=50)
 
-            #     # Replace colors with values and convert to tuple
-                 self.firstColorsTuple = tuple(self.color_mapping[color] for color in self.firstColors)
-                 self.secondColorsTuple= tuple(self.color_mapping[color] for color in self.secondColors)
-                 self.colorsTuple = (self.firstColorsTuple, self.secondColorsTuple)
-                
-            #     # Printing for debugging.
-                 if self.debug:
-                     print(f"Bright Values 1 array Sensors {self.firstValues}.")
-                     print(f"Bright Values 2 array Sensors: {self.secondValues}.")
-                     print(f"Tuple reads: {self.colorsTuple}")
-                
-            #     # What should the robot do?
-                 self.whatToDo = self.manuevers[self.colorsTuple]
+                # Until...how far?
+                self.encoder_LEFT.update()
+                self.encoder_RIGHT.update()
+                self.encLeftTicks = self.encoder_LEFT.get_position()
+                self.encRightTicks = self.encoder_RIGHT.get_position()
 
-                 if self.whatToDo == "straight":
-                     if self.debug:
-                         print("Performing straight maneuver.")
-                     self.drive(speed=100, direction="Forward")
+                if abs(self.encLeftTicks) >= self.encoderCPR * 1:
+                    self.state = 22
+            
+            elif self.state == 22:
+                if abs(self.encLeftTicks) >= 6500:
+                    self.stop()
 
-                 elif self.whatToDo == "slight_right":
-                     if self.debug:
-                         print("Performing slight right turn.")
-                     self.slight_turn(direction="right")
-
-                 elif self.whatToDo == "slight_left":
-                     if self.debug:
-                         print("Performing slight left turn.")
-                     self.slight_turn(direction="left")
-
-                 elif self.whatToDo == "sharp_right":
-                     if self.debug:
-                         print("Performing sharp right turn.")
-                     self.sharp_turn(direction="right")
-
-                 elif self.whatToDo == "sharp_left":
-                     if self.debug:
-                         print("Performing sharp left turn.")
-                     self.sharp_turn(direction="left")
-                
-                 elif self.whatToDo == "very_slight_right":
-                     if self.debug:
-                         print("Performing slight right turn.")
-                     self.very_slight_turn(direction="right")
-
-                 elif self.whatToDo == "very_slight_left":
-                     if self.debug:
-                         print("Performing slight left turn.")
-                     self.very_slight_turn(direction="left")
-                
-                        
                 
     
             else:
