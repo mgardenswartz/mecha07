@@ -103,9 +103,9 @@ class encoderDriver:
         # It's unknown if this code works properly.
 
         self.position = 0
-        self.encoder_count = 0
-        self.delta = 0
-        self.current_count = 0
+        # self.encoder_count = 0
+        # self.delta = 0
+        # self.current_count = 0
 
     def get_speed(self,encoderCPR,controlFrequency):
         """
