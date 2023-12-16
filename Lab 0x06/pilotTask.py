@@ -21,9 +21,6 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-#from multiprocessing.resource_sharer import DupSocket
-
-
 class pilotTask:
     def __init__(self,
                 encoder_LEFT,
