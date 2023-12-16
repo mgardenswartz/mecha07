@@ -26,19 +26,35 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class pilotTask:
     def __init__(self,
-                 encoder_LEFT,
-                 encoder_RIGHT,
-                 motor_RPM_wanted_LEFT,
-                 motor_RPM_wanted_RIGHT,
-                 encoderCPR: int,
-                 revolutionLimit: int,
-                 IMU,
-                 firstLeftRow,
-                 firstRightRow,
-                 secondRow,
-                 bumpers,
-                 debug: bool):
-        
+                encoder_LEFT,
+                encoder_RIGHT,
+                motor_RPM_wanted_LEFT,
+                motor_RPM_wanted_RIGHT,
+                encoderCPR: int,
+                revolutionLimit: int,
+                IMU,
+                firstLeftRow,
+                firstRightRow,
+                secondRow,
+                bumpers,
+                debug: bool):
+        """
+        @brief Initializes the pilotTask object.
+        @details Sets up the pilotTask object with various parameters and initializes attributes.
+        @param encoder_LEFT: Left encoder object.
+        @param encoder_RIGHT: Right encoder object.
+        @param motor_RPM_wanted_LEFT: Queue for setting left motor RPM.
+        @param motor_RPM_wanted_RIGHT: Queue for setting right motor RPM.
+        @param encoderCPR: Counts per revolution for the encoder.
+        @param revolutionLimit: Limit for encoder revolutions.
+        @param IMU: Inertial Measurement Unit.
+        @param firstLeftRow: Sensor row object for the left side.
+        @param firstRightRow: Sensor row object for the right side.
+        @param secondRow: Second sensor row object.
+        @param bumpers: List of bumper objects.
+        @param debug: Boolean flag for debugging mode.
+        """
+
         # Attributes
         self.encoder_LEFT = encoder_LEFT
         self.encoder_RIGHT = encoder_RIGHT
@@ -113,7 +129,10 @@ class pilotTask:
                      (1, 0)): 'sharp_left'
                     }
 
-    def run(self):    
+    def run(self): 
+        '''@brief Run a program that intelligently drives the Romi through the course
+        @details State 0 follows the line. Subsequent states deal with driving around an obstacle.
+        The last few states deal with the Romi returning to the starting position.'''   
         while True:
             if self.state == 0:
                 # Read sensors
@@ -192,21 +211,6 @@ class pilotTask:
                 else:
                     raise Exception("Something went wrong.")
 
-                # if self.firstValues[1] > 50 and self.firstValues[4] < 50: #turn to left so higher in right wheel a right wheel and then left little
-                #      self.turn(turnSpeed=self.spinSpeed, direction="left")
-                # elif self.secondValues[1] > 50 and self.secondValues[4] < 50: #second row left turn so higher speed in right wheel
-                #     self.turn(turnSpeed=self.spinSpeed, direction="left")
-                # elif self.firstValues[1] < 50 and self.firstValues[4] > 50: #  first row left speed but still we need a little right
-                #     self.turn(turnSpeed=self.spinSpeed, direction="right")
-                # elif self.secondValues[1] < 50 and self.secondValues[4] > 50:  #second row right turn so higher left speed
-                #     self.turn(turnSpeed=self.spinSpeed, direction="right") 
-                # elif self.firstValues[1] > 50 and self.firstValues[4] > 50: #first row all dark  go foward
-                #     self.drive(speed=50, direction="forward") 
-                # elif self.secondValues[1] > 50 and self.secondValues[4] > 50: #also keep going foward if second row is dark
-                #     self.drive(speed=50, direction="forward")   
-                # else:
-                #     self.drive(speed=50, direction="forward") # only white and white and keep going foward.
-
                 # Bumpers
                 self.bumperStates = [not(bumper.value()) for bumper in self.bumpers]
                 if any(self.bumperStates):
@@ -243,8 +247,6 @@ class pilotTask:
                 self.encLeftTicks = self.encoder_LEFT.get_position()                
                 self.state = 4
 
-    
-            
             elif self.state == 4: #turn right work
                  self.turn_in_place(direction="right",turnSpeed = 30 #deg/s (turn right)
                                     )
@@ -394,8 +396,6 @@ class pilotTask:
                  if abs(self.revsTurned) >= 0.25:
                      self.state = 17   
 
-                 
-            
             elif self.state == 17: # stop
                  self.stop()
                  self.encoder_RIGHT.zero()
@@ -480,7 +480,6 @@ class pilotTask:
                 else:
                     raise ValueError(f"Invalid state: {self.state}.")
 
-
             elif self.state == 19: # stop
                 self.stop()
                 self.encoder_RIGHT.zero()
@@ -523,9 +522,6 @@ class pilotTask:
                 if abs(self.encLeftTicks) >= 5000:
                     self.stop()
                     
-
-
-   
             else:
               raise ValueError(f"Invalid state: {self.state}.")
             
@@ -533,65 +529,100 @@ class pilotTask:
             yield self.state
 
     def stop(self):
+        """
+        @brief Stops both left and right motors.
+        @details Puts 0 RPM in both left and right motor queues to stop the motors.
+        """
         self.motor_RPM_wanted_LEFT.put(0)
         self.motor_RPM_wanted_RIGHT.put(0)
 
-    def very_slight_turn(self,direction): 
+    def very_slight_turn(self, direction): 
+        """
+        @brief Initiates a very slight turn in the specified direction.
+        @details Adjusts the RPM values for left and right motors based on the specified direction.
+        @param direction: Direction of the turn ("cc" for counterclockwise, "CW" for clockwise).
+        """
         # Determine direction.
-        if direction in ["cc","CC","Counterclockwise","Left","left","L"]:
-            self.motor_RPM_wanted_RIGHT.put(  10 )
-            self.motor_RPM_wanted_LEFT.put(  5 )
+        if direction in ["cc", "CC", "Counterclockwise", "Left", "left", "L"]:
+            self.motor_RPM_wanted_RIGHT.put(10)
+            self.motor_RPM_wanted_LEFT.put(5)
         else: 
-            self.motor_RPM_wanted_RIGHT.put(  10 )
-            self.motor_RPM_wanted_LEFT.put(  5 ) 
+            self.motor_RPM_wanted_RIGHT.put(10)
+            self.motor_RPM_wanted_LEFT.put(5)
 
-    def slight_turn(self,direction): 
+    def slight_turn(self, direction): 
+        """
+        @brief Initiates a slight turn in the specified direction.
+        @details Adjusts the RPM values for left and right motors based on the specified direction.
+        @param direction: Direction of the turn ("cc" for counterclockwise, "CW" for clockwise).
+        """
         # Determine direction.
-        if direction in ["cc","CC","Counterclockwise","Left","left","L"]:
-            self.motor_RPM_wanted_RIGHT.put(  30 )
-            self.motor_RPM_wanted_LEFT.put(  5 )
+        if direction in ["cc", "CC", "Counterclockwise", "Left", "left", "L"]:
+            self.motor_RPM_wanted_RIGHT.put(30)
+            self.motor_RPM_wanted_LEFT.put(5)
         else: 
-            self.motor_RPM_wanted_RIGHT.put(  5 )
-            self.motor_RPM_wanted_LEFT.put(  30 )
+            self.motor_RPM_wanted_RIGHT.put(5)
+            self.motor_RPM_wanted_LEFT.put(30)
 
-    def sharp_turn(self,direction):
+    def sharp_turn(self, direction):
+        """
+        @brief Initiates a sharp turn in the specified direction.
+        @details Adjusts the RPM values for left and right motors based on the specified direction.
+        @param direction: Direction of the turn ("cc" for counterclockwise, "CW" for clockwise).
+        """
         # Determine direction.
-        if direction in ["cc","CC","Counterclockwise","Left","left","L"]:
-            self.motor_RPM_wanted_RIGHT.put(  50 )
-            self.motor_RPM_wanted_LEFT.put(  0 )
+        if direction in ["cc", "CC", "Counterclockwise", "Left", "left", "L"]:
+            self.motor_RPM_wanted_RIGHT.put(50)
+            self.motor_RPM_wanted_LEFT.put(0)
         else:
-            self.motor_RPM_wanted_RIGHT.put(  0 )
-            self.motor_RPM_wanted_LEFT.put(  50 )
+            self.motor_RPM_wanted_RIGHT.put(0)
+            self.motor_RPM_wanted_LEFT.put(50)
 
-    def turn_in_place(self,turnSpeed,direction):
+    def turn_in_place(self, turnSpeed, direction):
+        """
+        @brief Initiates a turn in place at the specified speed and direction.
+        @details Adjusts the RPM values for left and right motors based on the specified turn speed and direction.
+        @param turnSpeed: Speed of the turn in degrees per second.
+        @param direction: Direction of the turn ("cc" for counterclockwise, "CW" for clockwise).
+        """
         # Convert Turn speed from dps to rad/s
-        self.turnSpeed = abs(turnSpeed/180*3.14159) #rad/s 
+        self.turnSpeed = abs(turnSpeed/180*3.14159)  # rad/s 
 
         # Convert information to a maneuver of the wheels.
-        self.wheelSpeed  = self.turnSpeed*145/70 # rad/s
-        self.wheelSpeed *= 60/(2*3.14159)       # RPM
+        self.wheelSpeed = self.turnSpeed*145/70  # rad/s
+        self.wheelSpeed *= 60/(2*3.14159)  # RPM
 
         # Determine direction.
-        if direction in ["cc","CC","Counterclockwise","Left","left","L"]:
-            self.motor_RPM_wanted_RIGHT.put(  self.wheelSpeed )
-            self.motor_RPM_wanted_LEFT.put(  -self.wheelSpeed )
+        if direction in ["cc", "CC", "Counterclockwise", "Left", "left", "L"]:
+            self.motor_RPM_wanted_RIGHT.put(self.wheelSpeed)
+            self.motor_RPM_wanted_LEFT.put(-self.wheelSpeed)
         else:
-            self.motor_RPM_wanted_RIGHT.put(  -self.wheelSpeed )
-            self.motor_RPM_wanted_LEFT.put(   self.wheelSpeed )
+            self.motor_RPM_wanted_RIGHT.put(-self.wheelSpeed)
+            self.motor_RPM_wanted_LEFT.put(self.wheelSpeed)
 
-    def drive(self,speed,direction):
+    def drive(self, speed, direction):
+        """
+        @brief Drives the robot at the specified speed and direction.
+        @details Adjusts the RPM values for left and right motors based on the specified speed and direction.
+        @param speed: Speed of the robot in mm/s.
+        @param direction: Direction of the drive ("Reverse", "Backward" for backward motion, else forward).
+        """
         # Convert speed from mm/s to RPM
         self.speed = abs(speed/35*60/(2*3.14159))  # RPM
 
         # Determine direction.
-        if direction in ["Reverse","Backward","R","r","reverse","backward"]:
-            self.motor_RPM_wanted_LEFT.put(  -self.speed)
-            self.motor_RPM_wanted_RIGHT.put( -self.speed)
+        if direction in ["Reverse", "Backward", "R", "r", "reverse", "backward"]:
+            self.motor_RPM_wanted_LEFT.put(-self.speed)
+            self.motor_RPM_wanted_RIGHT.put(-self.speed)
         else:
-            self.motor_RPM_wanted_LEFT.put(  self.speed)
-            self.motor_RPM_wanted_RIGHT.put( self.speed)
+            self.motor_RPM_wanted_LEFT.put(self.speed)
+            self.motor_RPM_wanted_RIGHT.put(self.speed)
 
     def read_sensors(self):
+        """
+        @brief Reads sensor values (colors, brightness, raw) from various sensor rows.
+        @details Reads values from the left and right sensor rows, and the second sensor row.
+        """
         # Read Sensors (Colors)
         self.firstLeftColors = self.firstLeftRow.read_color()
         self.firstRightColors = self.firstRightRow.read_color()
